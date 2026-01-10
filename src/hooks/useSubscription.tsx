@@ -91,6 +91,16 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
+      // JWT debug logging
+      const { data: currentSession } = await supabase.auth.getSession();
+      const token = currentSession?.session?.access_token;
+      console.log("[SUBSCRIPTION] Current JWT token:", token);
+      console.log("[SUBSCRIPTION] Token exists:", !!token);
+      if (token) {
+        console.log("[SUBSCRIPTION] Token length:", token.length);
+        console.log("[SUBSCRIPTION] Token starts with:", token.substring(0, 20) + "...");
+      }
+      
       const { data, error } = await supabase.functions.invoke('check-subscription');
 
       if (error) throw error;
@@ -119,6 +129,16 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
+      // JWT debug logging
+      const { data: currentSession } = await supabase.auth.getSession();
+      const token = currentSession?.session?.access_token;
+      console.log("[CHECKOUT] Current JWT token:", token);
+      console.log("[CHECKOUT] Token exists:", !!token);
+      if (token) {
+        console.log("[CHECKOUT] Token length:", token.length);
+        console.log("[CHECKOUT] Token starts with:", token.substring(0, 20) + "...");
+      }
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
       });
@@ -137,6 +157,16 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
+      // JWT debug logging
+      const { data: currentSession } = await supabase.auth.getSession();
+      const token = currentSession?.session?.access_token;
+      console.log("[PORTAL] Current JWT token:", token);
+      console.log("[PORTAL] Token exists:", !!token);
+      if (token) {
+        console.log("[PORTAL] Token length:", token.length);
+        console.log("[PORTAL] Token starts with:", token.substring(0, 20) + "...");
+      }
+      
       const { data, error } = await supabase.functions.invoke('customer-portal');
 
       if (error) throw error;
