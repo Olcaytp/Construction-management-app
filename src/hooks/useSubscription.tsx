@@ -76,6 +76,12 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     error: null,
   });
 
+  // Always fetch a fresh JWT from Supabase Auth before invoking protected Edge Functions
+  const getAuthToken = useCallback(async (): Promise<string | null> => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+  }, []);
+
   const checkSubscription = useCallback(async () => {
     if (!session?.access_token || !user?.id) {
       setState(prev => ({ ...prev, loading: false, subscribed: false }));
@@ -85,12 +91,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
-      const { data, error } = await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "x-user-id": user.id,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke('check-subscription');
 
       if (error) throw error;
 
@@ -120,9 +121,6 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (error) throw error;
@@ -139,11 +137,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke('customer-portal');
 
       if (error) throw error;
       return data.url;

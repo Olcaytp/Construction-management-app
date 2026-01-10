@@ -33,74 +33,54 @@ serve(async (req) => {
 
     logStep("Stripe key verified");
 
-    // Get user ID from header (x-user-id) or Authorization token
-    let userId = req.headers.get("x-user-id");
-    let userEmail = null;
-
-    if (!userId) {
-      // Try to get from Authorization header
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
-        logStep("No user-id or authorization header, returning unsubscribed");
-        return new Response(JSON.stringify({ subscribed: false }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-        { auth: { persistSession: false } }
-      );
-
-      const token = authHeader.replace("Bearer ", "");
-      logStep("Attempting to authenticate user with token");
-      
-      const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-      if (userError) {
-        logStep("Token auth error", { error: userError.message });
-        return new Response(JSON.stringify({ subscribed: false }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      const user = userData.user;
-      if (!user?.id) {
-        logStep("User not found in token");
-        return new Response(JSON.stringify({ subscribed: false }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      userId = user.id;
-      userEmail = user.email;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      logStep("No authorization header, returning unsubscribed");
+      return new Response(JSON.stringify({ subscribed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    logStep("User identified", { userId, userEmail });
+    const supabaseUserClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      }
+    );
 
-    // If we don't have userEmail, fetch it from Supabase auth
+    const { data: userData, error: userError } = await supabaseUserClient.auth.getUser();
+    if (userError || !userData?.user) {
+      logStep("Auth failed", { error: userError?.message });
+      return new Response(JSON.stringify({ subscribed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const userId = userData.user.id;
+    let userEmail: string | null = userData.user.email ?? null;
+
+    logStep("User authenticated", { userId, userEmail });
+
     if (!userEmail) {
-      const supabaseClient = createClient(
+      const supabaseAdmin = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
         { auth: { persistSession: false } }
       );
-
-        const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId!);
-        const authUser = userData?.user;
-      if (userError || !authUser?.email) {
-        logStep("Could not fetch user email from auth");
+      const { data: adminData } = await supabaseAdmin.auth.admin.getUserById(userId);
+      userEmail = adminData?.user?.email ?? null;
+      if (!userEmail) {
+        logStep("Could not fetch user email from admin API");
         return new Response(JSON.stringify({ subscribed: false }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
       }
-
-        userEmail = authUser.email;
-      logStep("Fetched user email from auth", { userEmail });
+      logStep("Fetched user email from admin API", { userEmail });
     }
 
     const stripe = new Stripe(stripeKey);
