@@ -93,22 +93,22 @@ export const AdminPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Standard Plan */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Free Plan */}
             <Card className="border-2">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  {SUBSCRIPTION_TIERS.standard.name}
+                  {SUBSCRIPTION_TIERS.free.name}
                   <Badge variant="secondary">{t('admin.freePlan') || 'Ücretsiz'}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold mb-4">
-                  {formatCurrency(SUBSCRIPTION_TIERS.standard.price)}
+                  {formatCurrency(SUBSCRIPTION_TIERS.free.price)}
                   <span className="text-sm font-normal text-muted-foreground">/{t('finance.month') || 'ay'}</span>
                 </div>
                 <ul className="space-y-2">
-                  {SUBSCRIPTION_TIERS.standard.features.map((feature, index) => (
+                  {SUBSCRIPTION_TIERS.free.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm">
                       <CheckSquare className="h-4 w-4 text-primary" />
                       {feature}
@@ -118,23 +118,53 @@ export const AdminPanel = () => {
               </CardContent>
             </Card>
 
-            {/* Premium Plan */}
+            {/* Premium Monthly Plan */}
             <Card className="border-2 border-primary">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  {SUBSCRIPTION_TIERS.premium.name}
+                  {SUBSCRIPTION_TIERS.premium_monthly.name}
                   <Badge className="bg-primary">{t('admin.paidPlan') || 'Ücretli'}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold mb-4">
-                  {formatCurrency(SUBSCRIPTION_TIERS.premium.price)}
+                  {formatCurrency(SUBSCRIPTION_TIERS.premium_monthly.price)}
                   <span className="text-sm font-normal text-muted-foreground">/{t('finance.month') || 'ay'}</span>
                 </div>
                 <ul className="space-y-2">
-                  {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
+                  {SUBSCRIPTION_TIERS.premium_monthly.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm">
                       <Crown className="h-4 w-4 text-yellow-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Premium Yearly Plan */}
+            <Card className="border-2 border-amber-500 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-amber-500">%25 Tasarruf</Badge>
+              </div>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  {SUBSCRIPTION_TIERS.premium_yearly.name}
+                  <Badge className="bg-amber-600">{t('admin.bestValue') || 'En İyi'}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold mb-2">
+                  {formatCurrency(SUBSCRIPTION_TIERS.premium_yearly.price)}
+                  <span className="text-sm font-normal text-muted-foreground">/{t('finance.year') || 'yıl'}</span>
+                </div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  ≈ {formatCurrency(SUBSCRIPTION_TIERS.premium_yearly.monthly_equivalent)}/{t('finance.month') || 'ay'}
+                </div>
+                <ul className="space-y-2">
+                  {SUBSCRIPTION_TIERS.premium_yearly.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2 text-sm">
+                      <Crown className="h-4 w-4 text-amber-600" />
                       {feature}
                     </li>
                   ))}

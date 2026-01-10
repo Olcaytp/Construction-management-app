@@ -19,7 +19,7 @@ export const SubscriptionCard = () => {
   } = useSubscription();
 
   const handleSubscribe = async () => {
-    const url = await createCheckout(SUBSCRIPTION_TIERS.premium.price_id!);
+    const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
     if (url) {
       window.open(url, "_blank");
     } else {
@@ -55,12 +55,12 @@ export const SubscriptionCard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Standard Plan */}
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Free Plan */}
         <Card className={!isPremium ? "border-primary/50 bg-primary/5" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{SUBSCRIPTION_TIERS.standard.name}</CardTitle>
+              <CardTitle className="text-lg">{SUBSCRIPTION_TIERS.free.name}</CardTitle>
               {!isPremium && (
                 <Badge variant="default" className="bg-primary">
                   Mevcut Plan
@@ -74,7 +74,7 @@ export const SubscriptionCard = () => {
               <span className="text-3xl font-bold">Ücretsiz</span>
             </div>
             <ul className="space-y-2 text-sm">
-              {SUBSCRIPTION_TIERS.standard.features.map((feature, index) => (
+              {SUBSCRIPTION_TIERS.free.features.map((feature, index) => (
                 <li key={index} className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-primary" />
                   <span>{feature}</span>
@@ -95,7 +95,7 @@ export const SubscriptionCard = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Crown className={`h-5 w-5 ${isPremium ? "text-primary" : "text-amber-500"}`} />
-                <CardTitle className="text-lg">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
+                <CardTitle className="text-lg">{SUBSCRIPTION_TIERS.premium_monthly.name}</CardTitle>
               </div>
               {isPremium && (
                 <Badge variant="default" className="bg-primary">
@@ -121,12 +121,12 @@ export const SubscriptionCard = () => {
                   <div className="flex items-center gap-2 text-sm">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Aylık:</span>
-                    <span className="font-medium">{SUBSCRIPTION_TIERS.premium.price} {SUBSCRIPTION_TIERS.premium.currency}</span>
+                    <span className="font-medium">{SUBSCRIPTION_TIERS.premium_monthly.price} {SUBSCRIPTION_TIERS.premium_monthly.currency}</span>
                   </div>
                 </div>
 
                 <ul className="space-y-2 text-sm">
-                  {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
+                  {SUBSCRIPTION_TIERS.premium_monthly.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
                       <span>{feature}</span>
@@ -152,14 +152,14 @@ export const SubscriptionCard = () => {
               <>
                 <div className="flex items-baseline gap-1">
                   <span className="text-3xl font-bold">
-                    {SUBSCRIPTION_TIERS.premium.price}
+                    {SUBSCRIPTION_TIERS.premium_monthly.price}
                   </span>
                   <span className="text-muted-foreground">
-                    {SUBSCRIPTION_TIERS.premium.currency}/ay
+                    {SUBSCRIPTION_TIERS.premium_monthly.currency}/ay
                   </span>
                 </div>
                 <ul className="space-y-2 text-sm">
-                  {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
+                  {SUBSCRIPTION_TIERS.premium_monthly.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
                       <span>{feature}</span>
@@ -173,6 +173,61 @@ export const SubscriptionCard = () => {
                 </Button>
               </>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Premium Yearly Plan */}
+        <Card className="border-2 border-amber-500 relative">
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+            <Badge className="bg-amber-500">%25 Tasarruf</Badge>
+          </div>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-amber-500" />
+                <CardTitle className="text-lg">{SUBSCRIPTION_TIERS.premium_yearly.name}</CardTitle>
+              </div>
+            </div>
+            <CardDescription>En iyi değer</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold">
+                {SUBSCRIPTION_TIERS.premium_yearly.price}
+              </span>
+              <span className="text-muted-foreground">
+                {SUBSCRIPTION_TIERS.premium_yearly.currency}/yıl
+              </span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              ≈ {SUBSCRIPTION_TIERS.premium_yearly.monthly_equivalent} {SUBSCRIPTION_TIERS.premium_yearly.currency}/ay
+            </div>
+            <ul className="space-y-2 text-sm">
+              {SUBSCRIPTION_TIERS.premium_yearly.features.map((feature, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button 
+              className="w-full bg-amber-600 hover:bg-amber-700"
+              onClick={() => {
+                const priceId = SUBSCRIPTION_TIERS.premium_yearly.price_id;
+                if (priceId) {
+                  createCheckout(priceId).then(url => {
+                    if (url) {
+                      window.open(url, "_blank");
+                    } else {
+                      toast.error("Ödeme sayfası açılamadı. Lütfen tekrar deneyin.");
+                    }
+                  });
+                }
+              }}
+            >
+              <Crown className="h-4 w-4 mr-2" />
+              Yıllık Premium'a Yükselt
+            </Button>
           </CardContent>
         </Card>
       </div>

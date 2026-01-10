@@ -84,7 +84,7 @@ const Index = () => {
 
   // Plan limitleri - Admin'ler premium özelliklerine sahip
   const hasPremiumAccess = isPremium || isAdmin;
-  const currentLimits = hasPremiumAccess ? PLAN_LIMITS.premium : PLAN_LIMITS.standard;
+  const currentLimits = hasPremiumAccess ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
   const canAddProject = projects.length < currentLimits.maxProjects;
   const canAddTeamMember = teamMembers.length < currentLimits.maxTeamMembers;
   
@@ -443,7 +443,7 @@ const Index = () => {
               <UpgradeAlert 
                 type="projects" 
                 current={projects.length} 
-                limit={PLAN_LIMITS.standard.maxProjects} 
+                limit={PLAN_LIMITS.free.maxProjects} 
               />
             )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -573,7 +573,7 @@ const Index = () => {
               <UpgradeAlert 
                 type="teamMembers" 
                 current={teamMembers.length} 
-                limit={PLAN_LIMITS.standard.maxTeamMembers} 
+                limit={PLAN_LIMITS.free.maxTeamMembers} 
               />
             )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

@@ -31,7 +31,7 @@ export const ReportsSection = () => {
   const hasPremiumAccess = isPremium || isAdmin;
 
   const handleUpgrade = async () => {
-    const url = await createCheckout(SUBSCRIPTION_TIERS.premium.price_id!);
+    const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
     if (url) {
       window.open(url, "_blank");
     } else {

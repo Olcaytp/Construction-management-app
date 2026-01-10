@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription, PLAN_LIMITS } from "@/hooks/useSubscription";
 
 export interface Customer {
   id: string;
@@ -15,6 +16,7 @@ export interface Customer {
 export const useCustomers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isPremium } = useSubscription();
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
@@ -42,6 +44,14 @@ export const useCustomers = () => {
     mutationFn: async (customer: Omit<Customer, "id">) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      // Check subscription limits
+      const currentLimit = isPremium ? PLAN_LIMITS.premium.maxCustomers : PLAN_LIMITS.free.maxCustomers;
+      const { count } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+      
+      if (count !== null && count >= currentLimit) {
+        throw new Error(`Müşteri limiti aşıldı. ${isPremium ? "Premium" : "Ücretsiz"} planda maksimum ${currentLimit} müşteri ekleyebilirsiniz.`);
+      }
 
       const { error } = await supabase.from("customers").insert({
         user_id: user.id,

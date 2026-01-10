@@ -5,44 +5,73 @@ import { supabase } from "@/integrations/supabase/client";
 // Stripe ürün ve fiyat bilgileri
 // Plan limitleri
 export const PLAN_LIMITS = {
-  standard: {
-    maxProjects: 3,
-    maxTeamMembers: 2,
-    maxPhotosPerProject: 2,
+  free: {
+    maxProjects: 5,
+    maxCustomers: 5,
+    maxTeamMembers: 5,
+    maxPhotosPerProject: 10,
   },
   premium: {
     maxProjects: Infinity,
+    maxCustomers: Infinity,
     maxTeamMembers: Infinity,
-    maxPhotosPerProject: 4,
+    maxPhotosPerProject: Infinity,
   },
 } as const;
 
 export const SUBSCRIPTION_TIERS = {
-  standard: {
+  free: {
     product_id: null,
     price_id: null,
-    name: "Standard",
+    name: "Başlangıç",
     price: 0,
     currency: "TRY",
     features: [
-      "3 proje",
-      "2 ekip üyesi",
+      "5 proje",
+      "5 müşteri",
+      "5 ekip üyesi",
+      "10 fotoğraf/proje",
       "Temel raporlama",
       "E-posta desteği"
     ]
   },
-  premium: {
+  premium_monthly: {
     product_id: "prod_TiJnuqsH5SgpBF",
-    price_id: "price_1Skt9sBqz5IswCfZjnSobzU9",
-    name: "Premium",
-    price: 49.99,
+    price_id: "price_1SoAR6Bqz5IswCfZx0s7zlag",
+    name: "Premium (Aylık)",
+    price: 250,
     currency: "TRY",
+    billing_period: "monthly",
     features: [
       "Sınırsız proje",
+      "Sınırsız müşteri",
       "Sınırsız ekip üyesi",
+      "Sınırsız fotoğraf",
       "Gelişmiş raporlama",
+      "AI malzeme önerileri",
+      "Sözleşme oluşturma",
+      "Öncelikli destek"
+    ]
+  },
+  premium_yearly: {
+    product_id: "prod_TiJnuqsH5SgpBF",
+    price_id: "price_1SoAReBqz5IswCfZjiJklB1i",
+    name: "Premium (Yıllık)",
+    price: 2500,
+    currency: "TRY",
+    billing_period: "yearly",
+    save_percentage: 25,
+    monthly_equivalent: 208.33,
+    features: [
+      "Sınırsız proje",
+      "Sınırsız müşteri",
+      "Sınırsız ekip üyesi",
+      "Sınırsız fotoğraf",
+      "Gelişmiş raporlama",
+      "AI malzeme önerileri",
+      "Sözleşme oluşturma",
       "Öncelikli destek",
-      "AI malzeme önerileri"
+      "✨ %25 tasarruf! (Aylık 208.33₺)"
     ]
   }
 } as const;
@@ -209,7 +238,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
   }, [checkSubscription]);
 
-  const isPremium = state.subscribed && state.productId === SUBSCRIPTION_TIERS.premium.product_id;
+  const isPremium = state.subscribed && state.productId === SUBSCRIPTION_TIERS.premium_monthly.product_id;
 
   return (
     <SubscriptionContext.Provider
