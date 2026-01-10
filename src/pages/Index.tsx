@@ -227,13 +227,18 @@ const Index = () => {
     );
   }
 
+  const handleLogoClick = () => {
+    setActiveTab("dashboard");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity">
               <div className="bg-primary p-1.5 sm:p-2 rounded-lg flex-shrink-0">
                 <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               </div>
@@ -241,7 +246,7 @@ const Index = () => {
                 <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{t('app.title')}</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">{t('app.dashboard')}</p>
               </div>
-            </div>
+            </button>
             <div className="flex items-center gap-2 flex-shrink-0">
               <HeaderMenu />
             </div>

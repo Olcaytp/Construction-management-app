@@ -69,7 +69,7 @@ export const useTimesheets = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error(t("timesheet.toast.noUser"));
 
-      const { error } = await supabase.from("team_timesheets").insert({
+      const { data, error } = await supabase.from("team_timesheets").insert({
         user_id: user.id,
         team_member_id: payload.team_member_id,
         work_date: payload.work_date,
@@ -81,9 +81,10 @@ export const useTimesheets = () => {
         payable_amount: payload.payable_amount,
         status: payload.status ?? "pending",
         notes: payload.notes ?? null,
-      });
+      }).select();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["timesheets"] });
@@ -96,7 +97,7 @@ export const useTimesheets = () => {
 
   const updateTimesheet = useMutation({
     mutationFn: async (payload: UpdateTimesheetInput) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("team_timesheets")
         .update({
           team_member_id: payload.team_member_id,
@@ -110,9 +111,11 @@ export const useTimesheets = () => {
           status: payload.status ?? "pending",
           notes: payload.notes ?? null,
         })
-        .eq("id", payload.id);
+        .eq("id", payload.id)
+        .select();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["timesheets"] });

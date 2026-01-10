@@ -19,13 +19,15 @@ import type { TeamMember } from "@/hooks/useTeamMembers";
 import type { CreateTimesheetInput, TimesheetEntry, UpdateTimesheetInput } from "@/hooks/useTimesheets";
 
 const formSchema = z.object({
-  memberId: z.string().min(1),
-  workDate: z.string().min(1),
+  memberId: z.string().min(1, "Ekip üyesi seçilmeli"),
+  workDate: z.string().min(1, "Tarih seçilmeli"),
+  calculationType: z.enum(["hours", "days"]).default("hours"),
   hoursWorked: z.coerce.number().min(0),
+  daysWorked: z.coerce.number().min(0),
   overtimeHours: z.coerce.number().min(0),
   leaveHours: z.coerce.number().min(0),
   leaveType: z.string().optional(),
-  hourlyRate: z.coerce.number().min(0),
+  hourlyRate: z.coerce.number().min(0.01, "Saatlik ücret 0'dan büyük olmalı"),
   status: z.enum(["pending", "approved", "paid"]).default("pending"),
   notes: z.string().optional(),
 });
@@ -46,11 +48,13 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
   const resolveDefaults = () => ({
     memberId: defaultValues?.team_member_id || "",
     workDate: defaultValues?.work_date || new Date().toISOString().split("T")[0],
-    hoursWorked: defaultValues?.hours_worked ?? undefined,
-    overtimeHours: defaultValues?.overtime_hours ?? undefined,
-    leaveHours: defaultValues?.leave_hours ?? undefined,
+    calculationType: "hours" as const,
+    hoursWorked: defaultValues?.hours_worked ? defaultValues.hours_worked : undefined,
+    daysWorked: defaultValues?.hours_worked ? defaultValues.hours_worked / 8 : undefined,
+    overtimeHours: defaultValues?.overtime_hours ? defaultValues.overtime_hours : undefined,
+    leaveHours: defaultValues?.leave_hours ? defaultValues.leave_hours : undefined,
     leaveType: defaultValues?.leave_type || "",
-    hourlyRate: defaultValues?.hourly_rate ?? undefined,
+    hourlyRate: defaultValues?.hourly_rate ? defaultValues.hourly_rate : undefined,
     status: (defaultValues?.status as TimesheetFormValues["status"]) || "pending",
     notes: defaultValues?.notes || "",
   });
@@ -82,7 +86,15 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
   const toNumber = (value: number | undefined) => (Number.isFinite(value) ? Number(value) : 0);
 
   const computePayable = (values: TimesheetFormValues) => {
-    const hours = toNumber(values.hoursWorked);
+    let hours = 0;
+    
+    // Calculate hours based on calculation type
+    if (values.calculationType === "days") {
+      hours = toNumber(values.daysWorked) * 8;
+    } else {
+      hours = toNumber(values.hoursWorked);
+    }
+    
     const hourly = toNumber(values.hourlyRate);
     const overtimeHours = toNumber(values.overtimeHours);
     const leaveHours = toNumber(values.leaveHours);
@@ -102,22 +114,51 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
     }
   }, [watchValues.memberId, form, teamMembers]);
 
-  const handleSubmit = (values: TimesheetFormValues) => {
-    const payable = computePayable(values);
-    onSubmit({
-      team_member_id: values.memberId,
-      work_date: values.workDate,
-      hours_worked: values.hoursWorked,
-      overtime_hours: values.overtimeHours,
-      leave_hours: values.leaveHours,
-      leave_type: values.leaveType || null,
-      hourly_rate: values.hourlyRate,
-      payable_amount: payable,
-      status: values.status,
-      notes: values.notes || null,
-    });
-    form.reset();
-    onOpenChange(false);
+  const handleSubmit = async (values: TimesheetFormValues) => {
+    try {
+      // Convert days to hours if needed
+      let finalHours = 0;
+      if (values.calculationType === "days") {
+        finalHours = (values.daysWorked || 0) * 8;
+      } else {
+        finalHours = values.hoursWorked || 0;
+      }
+      
+      if (!values.memberId) {
+        console.error("Ekip üyesi seçilmedi");
+        return;
+      }
+
+      if (finalHours <= 0) {
+        console.error("Çalışılan saat/gün 0'dan büyük olmalı");
+        return;
+      }
+
+      if (!values.hourlyRate || values.hourlyRate <= 0) {
+        console.error("Saatlik ücret gerekli");
+        return;
+      }
+      
+      const payable = computePayable(values);
+      
+      onSubmit({
+        team_member_id: values.memberId,
+        work_date: values.workDate,
+        hours_worked: finalHours,
+        overtime_hours: values.overtimeHours || 0,
+        leave_hours: values.leaveHours || 0,
+        leave_type: values.leaveType || null,
+        hourly_rate: values.hourlyRate,
+        payable_amount: payable,
+        status: values.status,
+        notes: values.notes || null,
+      });
+      
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Form submission error:", error);
+    }
   };
 
   return (
@@ -172,23 +213,65 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="hoursWorked"
+                name="calculationType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("timesheet.form.hoursWorked")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                      />
-                    </FormControl>
+                    <FormLabel>{t("timesheet.form.calculationType") || "Hesap Türü"}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hours">{t("timesheet.form.hours") || "Saat"}</SelectItem>
+                        <SelectItem value="days">{t("timesheet.form.days") || "Gün"}</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {form.watch("calculationType") === "hours" ? (
+                <FormField
+                  control={form.control}
+                  name="hoursWorked"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("timesheet.form.hoursWorked")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={field.value && field.value > 0 ? field.value : ""}
+                          onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="daysWorked"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("timesheet.form.daysWorked") || "Çalışılan Gün"}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={field.value && field.value > 0 ? field.value : ""}
+                          onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
@@ -201,8 +284,8 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                         type="number"
                         min="0"
                         step="0.5"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        value={field.value && field.value > 0 ? field.value : ""}
+                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -221,8 +304,8 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                         type="number"
                         min="0"
                         step="0.5"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        value={field.value && field.value > 0 ? field.value : ""}
+                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -265,8 +348,8 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                         type="number"
                         min="0"
                         step="0.01"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+                        value={field.value && field.value > 0 ? field.value : ""}
+                        onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
