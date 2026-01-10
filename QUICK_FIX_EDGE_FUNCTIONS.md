@@ -33,7 +33,7 @@ For BOTH functions (`suggest-materials` and `generate-contract`):
 1. Go to Function → **Settings** tab
 2. Add Secret:
    - Name: `OPENAI_API_KEY`
-   - Value: `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`
+   - Value: `[Your OpenAI API Key from https://platform.openai.com/api-keys]`
 3. Click **Save**
 
 (For check-subscription, you'll need STRIPE_SECRET_KEY if you have Stripe)
