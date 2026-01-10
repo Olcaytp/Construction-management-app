@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+.env.local
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Android
+android/build
+android/.gradle
+android/app/build
+android/.idea
+*.apk
+*.aab
+
+# Documentation (development only)
+*_SETUP.md
+*_ERROR.md
+*_FIX.md
+*MIGRATION*.md
+*MIGRATION*.sql
+DEPLOY_*.md
+DOCUMENTATION_INDEX.md

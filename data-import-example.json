@@ -1,0 +1,62 @@
+{
+  "projects": [
+    {
+      "title": "Örnek Proje 1",
+      "description": "İlk örnek inşaat projesi",
+      "status": "planning",
+      "progress": 25,
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "assignedTeam": ["Ahmet", "Mehmet"],
+      "budget": 100000,
+      "actualCost": 45000,
+      "revenue": 150000,
+      "photos": []
+    }
+  ],
+  "customers": [
+    {
+      "name": "ABC İnşaat AŞ",
+      "phone": "+905551234567",
+      "address": "İstanbul, Türkiye",
+      "notes": "Müşteri notları",
+      "totalReceivable": 50000,
+      "totalPaid": 100000
+    }
+  ],
+  "teamMembers": [
+    {
+      "name": "Ahmet Yılmaz",
+      "phone": "+905551234567",
+      "specialty": "İnşaat Ustası",
+      "dailyWage": 500,
+      "totalReceivable": 5000,
+      "totalPaid": 10000
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Temel kazısı",
+      "description": "Proje temelinin kazılması",
+      "status": "pending",
+      "priority": "high",
+      "projectId": "project-uuid-here",
+      "assignedTo": "Ahmet Yılmaz",
+      "dueDate": "2024-02-15",
+      "estimatedCost": 20000
+    }
+  ],
+  "materials": [
+    {
+      "projectId": "project-uuid-here",
+      "name": "Çimento",
+      "quantity": 100,
+      "unit": "torba",
+      "estimatedCost": 15000,
+      "actualCost": 14500,
+      "status": "ordered",
+      "supplier": "Çimento Tedarik Ltd.",
+      "notes": "Kaliteli çimento"
+    }
+  ]
+}

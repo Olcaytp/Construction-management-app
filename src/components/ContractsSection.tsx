@@ -1,0 +1,257 @@
+import { useContracts } from "@/hooks/useContracts";
+import { useTranslation } from "react-i18next";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  FileText, 
+  Download, 
+  Trash2, 
+  Eye,
+  AlertCircle
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
+import { useState } from "react";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+
+const stripMarkdown = (text: string) =>
+  text
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/#{1,6}\s*/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/__([^_]*)__|_([^_]*)_/g, "$1$2")
+    .replace(/^\s*-\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+const mdToSafeHtml = (text: string) => {
+  const html = marked.parse(text || "");
+  return DOMPurify.sanitize(html as string);
+};
+
+export const ContractsSection = () => {
+  const { contracts, loading, deleteContract } = useContracts();
+  const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const [selectedContract, setSelectedContract] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(t("contract.deleteConfirm"))) return;
+    
+    try {
+      await deleteContract(id);
+      toast({ title: t("contract.deleted") });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: t("contract.deleteError"),
+      });
+    }
+  };
+
+  const handleDownloadPDF = (contract: any) => {
+    const jsPDFModule = (window as any).jsPDF;
+    if (!jsPDFModule) {
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: t("contract.pdfError"),
+      });
+      return;
+    }
+
+    const doc = new jsPDFModule();
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const maxWidth = pageWidth - margin * 2;
+    
+    const cleanText = stripMarkdown(contract.content);
+
+    const lines = doc.splitTextToSize(cleanText, maxWidth);
+    
+    let y = 20;
+    const lineHeight = 6.5;
+    
+    doc.setFontSize(12);
+    
+    for (const line of lines) {
+      if (y > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    }
+
+    doc.save(`${contract.title}.pdf`);
+  };
+
+  const handleDownloadDoc = (contract: any) => {
+    const cleanText = stripMarkdown(contract.content);
+    
+    const htmlContent = `<!doctype html>
+<html>
+<head><meta charset="UTF-8"><style>body { font-family: Arial, sans-serif; line-height: 1.5; margin: 20px; }</style></head>
+<body>
+<pre>${cleanText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+</body>
+</html>`;
+    
+    const blob = new Blob([htmlContent], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${contract.title}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { variant: any; label: string }> = {
+      draft: { variant: "secondary", label: t("contract.draft") },
+      signed: { variant: "default", label: t("contract.signed") },
+      completed: { variant: "default", label: t("contract.completed") },
+      archived: { variant: "outline", label: t("contract.archived") },
+    };
+    const config = statusConfig[status] || statusConfig.draft;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {t("contract.contracts")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{t("common.loading") || "Yükleniyor..."}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          {t("contract.contracts")}
+        </CardTitle>
+        <CardDescription>
+          {contracts.length} {t("contract.contractsCount")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {contracts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">{t("contract.noContracts")}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {t("contract.noContractsDesc")}
+            </p>
+          </div>
+        ) : (
+          <ScrollArea className="h-[60vh]">
+            <div className="space-y-3 pr-4">
+              {contracts.map((contract) => (
+                <div
+                  key={contract.id}
+                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{contract.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {contract.contractor_name && `${contract.contractor_name} • `}
+                          {format(
+                            new Date(contract.created_at),
+                            "d MMMM yyyy",
+                            { locale: i18n.language === 'tr' ? tr : undefined }
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                    {getStatusBadge(contract.status)}
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedContract(contract.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh]">
+                        <DialogHeader>
+                          <DialogTitle>{contract.title}</DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="h-[70vh] border rounded-lg p-4 bg-muted/30">
+                          <div className="prose prose-sm dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} />
+                        </ScrollArea>
+                        <div className="flex justify-end gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadPDF(contract)}
+                            className="gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            {t("contract.pdfDownload")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDoc(contract)}
+                            className="gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            {t("contract.wordDownload")}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(contract.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
