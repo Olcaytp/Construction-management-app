@@ -101,7 +101,16 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         console.log("[SUBSCRIPTION] Token starts with:", token.substring(0, 20) + "...");
       }
       
+      console.log("[SUBSCRIPTION] About to invoke check-subscription...")
       const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      console.log("[SUBSCRIPTION] Response error:", error);
+      if (error) {
+        console.log("[SUBSCRIPTION] Error name:", error.name);
+        console.log("[SUBSCRIPTION] Error message:", error.message);
+        console.log("[SUBSCRIPTION] Error context:", error.context);
+      }
+      console.log("[SUBSCRIPTION] Response data:", data);
 
       if (error) throw error;
 

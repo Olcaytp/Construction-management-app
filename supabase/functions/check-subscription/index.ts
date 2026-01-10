@@ -21,6 +21,7 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+    logStep("Request headers", Object.fromEntries(req.headers.entries()));
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -41,6 +42,8 @@ serve(async (req) => {
         status: 200,
       });
     }
+
+    logStep("Authorization header present", { header: authHeader.substring(0, 30) + "..." });
 
     const supabaseUserClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
