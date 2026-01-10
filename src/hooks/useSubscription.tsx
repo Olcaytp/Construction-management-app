@@ -85,11 +85,9 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
-      const anon = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
-          apikey: anon,
-          Authorization: `Bearer ${anon}`,
+          Authorization: `Bearer ${session.access_token}`,
           "x-user-id": user.id,
         },
       });
@@ -120,12 +118,10 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
-      const anon = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
         headers: {
-          apikey: anon,
-          Authorization: `Bearer ${anon}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -143,11 +139,9 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
-      const anon = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
-          apikey: anon,
-          Authorization: `Bearer ${anon}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
