@@ -50,16 +50,16 @@ export const TaskItem = ({
   };
 
   return (
-    <Card className={`border-l-4 ${priorityColors[priority]}`}>
-      <CardContent className="p-4">
+    <Card className={`w-full border-l-4 ${priorityColors[priority]}`}>
+      <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground">{title}</h3>
+              <h3 className="font-semibold text-foreground text-base sm:text-lg">{title}</h3>
               <Badge className={statusColors[status]}>{statusLabels[status]}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{project}</p>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">{project}</p>
+            <div className="flex items-center gap-4 text-sm sm:text-base text-muted-foreground">
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
                 {assignee}
@@ -70,24 +70,7 @@ export const TaskItem = ({
               </div>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onStatusChange?.("pending")}>
-                {t('task.pending')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onStatusChange?.("in-progress")}>
-                {t('task.inProgress')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onStatusChange?.("completed")}>
-                {t('task.completed')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="hidden" />
         </div>
       </CardContent>
     </Card>

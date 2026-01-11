@@ -13,7 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { project, customer, teamMembers, language = 'tr', country: userCountry, currency: userCurrency } = await req.json();
+    const { 
+      project, 
+      customer, 
+      teamMembers, 
+      language = 'tr', 
+      country: userCountry, 
+      currency: userCurrency,
+      mode = 'basic',
+      options = {}
+    } = await req.json();
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     
     if (!OPENAI_API_KEY) {
@@ -21,6 +30,7 @@ serve(async (req) => {
     }
 
     console.log("Generating contract for project:", project.title);
+    console.log("Mode:", mode, "Options:", options);
 
     // Language -> Country/Currency/Locale mapping
     const countryConfig: Record<string, { country: string; currency: string; locale: string }> = {

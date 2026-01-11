@@ -172,7 +172,18 @@
     "pdfDownload": "PDF İndir",
     "wordReady": "Word dosyası hazır",
     "pdfError": "PDF kütüphanesi yüklenmedi",
-    "statusUpdated": "Sözleşme durumu güncellendi"
+    "statusUpdated": "Sözleşme durumu güncellendi",
+    "freePlanNotice": "Ücretsiz planda temel sözleşme şablonu oluşturabilirsiniz. Aylık 3 sözleşme limiti bulunmaktadır.",
+    "freePlanFeatures": "Temel maddeler, tek dil çıkışı, sınırlı seçenekler",
+    "language": "Dil",
+    "options": "Seçenekler",
+    "advancedClauses": "Gelişmiş sözleşme maddeleri",
+    "paymentSchedule": "Ödeme planı",
+    "penaltyClauses": "Ceza hükümleri",
+    "limitReached": "Ücretsiz planda aylık 3 sözleşme limiti"
+  },
+  "subscription": {
+    "upgrade": "Premium'a Yükselt"
   },
   "task": {
     "add": "Görev Ekle",

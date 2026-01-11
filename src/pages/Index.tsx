@@ -434,16 +434,38 @@ const Index = () => {
                 {tasks.slice(0, 3).map(task => {
                   const assigneeName = teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo || t('common.noData');
                   return (
-                    <TaskItem
-                      key={task.id}
-                      title={task.title}
-                      project={projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
-                      assignee={assigneeName}
-                      dueDate={task.dueDate}
-                      status={task.status as any}
-                      priority={task.priority as any}
-                      onStatusChange={(status) => handleStatusChange(task.id, status)}
-                    />
+                    <div key={task.id} className="relative group">
+                      <TaskItem
+                        title={task.title}
+                        project={projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
+                        assignee={assigneeName}
+                        dueDate={task.dueDate}
+                        status={task.status as any}
+                        priority={task.priority as any}
+                        onStatusChange={(status) => handleStatusChange(task.id, status)}
+                      />
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setEditingTask(task);
+                            setTaskFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="h-8 w-8"
+                          onClick={() => handleDeleteTask(task.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -543,36 +565,36 @@ const Index = () => {
               {tasks.map(task => {
                 const assigneeName = teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo || t('common.noData');
                 return (
-                  <div key={task.id} className="flex gap-2 group">
-                    <div className="flex-1">
-                      <TaskItem 
-                        title={task.title}
-                        project={projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
-                        assignee={assigneeName}
-                        dueDate={task.dueDate}
-                        status={task.status as any}
-                        priority={task.priority as any}
-                        onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
-                      />
-                    </div>
-                  <div className="flex gap-2 items-start pt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setEditingTask(task);
-                        setTaskFormOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <div key={task.id} className="relative group">
+                    <TaskItem 
+                      title={task.title}
+                      project={projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
+                      assignee={assigneeName}
+                      dueDate={task.dueDate}
+                      status={task.status as any}
+                      priority={task.priority as any}
+                      onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          setEditingTask(task);
+                          setTaskFormOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="h-8 w-8"
+                        onClick={() => handleDeleteTask(task.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 );
@@ -698,8 +720,8 @@ const Index = () => {
                                     </div>
                                     <div>
                                     <p className="text-xs text-muted-foreground">{t('project.actualCost')}</p>
-                                        {/* Maliyet Değeri */}
-                                        <p className="font-semibold text-orange-600">{formatCurrency(project.actualCost || 0)}</p>
+                                      {/* Maliyet Değeri */}
+                                      <p className="font-semibold text-orange-600 text-right">{formatCurrency(project.actualCost || 0)}</p>
                                     </div>
                                 </div>
                                 {/* ... Bütçe Kullanımı çubuğu ve yüzdesi (burada değişiklik yok) ... */}

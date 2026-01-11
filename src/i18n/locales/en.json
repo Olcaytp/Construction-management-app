@@ -172,7 +172,18 @@
     "pdfDownload": "Download PDF",
     "wordReady": "Word file ready",
     "pdfError": "PDF library not loaded",
-    "statusUpdated": "Contract status updated"
+    "statusUpdated": "Contract status updated",
+    "freePlanNotice": "On the free plan you can create a basic contract template. Monthly limit of 3 contracts.",
+    "freePlanFeatures": "Basic clauses, single language output, limited options",
+    "language": "Language",
+    "options": "Options",
+    "advancedClauses": "Advanced contract clauses",
+    "paymentSchedule": "Payment schedule",
+    "penaltyClauses": "Penalty clauses",
+    "limitReached": "Monthly limit of 3 contracts reached on free plan"
+  },
+  "subscription": {
+    "upgrade": "Upgrade to Premium"
   },
   "task": {
     "add": "Add Task",

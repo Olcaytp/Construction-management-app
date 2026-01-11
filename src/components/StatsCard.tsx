@@ -17,13 +17,19 @@ export const StatsCard = ({ title, value, icon: Icon, trend, variant = "default"
     info: "bg-info/10 text-info",
   };
 
+  // Dynamically scale value text to prevent overflow on small screens
+  const valueText = String(value);
+  const len = valueText.length;
+  const sizeClass =
+    len >= 12 ? "text-xl" : len >= 10 ? "text-2xl" : "text-3xl";
+
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+            <p className={`${sizeClass} sm:text-3xl font-bold text-foreground leading-tight whitespace-nowrap`}>{value}</p>
             {trend && <p className="text-xs text-muted-foreground">{trend}</p>}
           </div>
         </div>

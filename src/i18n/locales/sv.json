@@ -172,7 +172,18 @@
     "pdfDownload": "Ladda ner PDF",
     "wordReady": "Word-fil klar",
     "pdfError": "PDF-bibliotek inte laddat",
-    "statusUpdated": "Avtaltsstatus uppdaterad"
+    "statusUpdated": "Kontraktets status uppdaterad",
+    "freePlanNotice": "I gratisplanen kan du skapa en grundläggande kontraktmall. Månatlig gräns på 3 kontrakt.",
+    "freePlanFeatures": "Grundläggande klausuler, utskrift på ett språk, begränsade alternativ",
+    "language": "Språk",
+    "options": "Alternativ",
+    "advancedClauses": "Avancerade kontraktklausuler",
+    "paymentSchedule": "Betalningsschema",
+    "penaltyClauses": "Straffbestämmelser",
+    "limitReached": "Månatlig gräns på 3 kontrakt uppnådd i gratisplanen"
+  },
+  "subscription": {
+    "upgrade": "Uppgradera till Premium"
   },
   "task": {
     "add": "Lägg till uppgift",
