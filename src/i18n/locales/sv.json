@@ -138,7 +138,9 @@
     "photoLimitPartialDesc": "Endast {{uploaded}}/{{total}} foton laddades upp (gräns: {{max}})",
     "noTeamMembers": "Lägg till teammedlemmar först i Team-fliken.",
     "cancel": "Avbryt",
-    "save": "Spara"
+    "save": "Spara",
+    "created": "Projekt skapades",
+    "createError": "Fel vid skapande av projekt"
   },
   "contract": {
     "title": "Entreprenöravtal",
@@ -460,12 +462,18 @@
       "noUser": "Användare hittades inte"
     }
   },
+  "validation": {
+    "required": "Det här fältet är obligatoriskt",
+    "fullNameRequired": "Vänligen ange ditt förnamn och efternamn",
+    "projectNameRequired": "Vänligen ange ett projektnamn"
+  },
   "common": {
     "edit": "Redigera",
     "delete": "Ta bort",
     "cancel": "Avbryt",
     "noData": "Ingen data tillgänglig",
     "error": "Fel",
+    "saved": "Sparad",
     "loading": "Laddar..."
   },
   "admin": {
