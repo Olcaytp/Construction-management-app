@@ -62,7 +62,7 @@ const Auth = () => {
     } else {
       toast({
         title: "Kayıt Başarılı",
-        description: "Hesabınız oluşturuldu. Giriş yapabilirsiniz.",
+        description: "E-postanıza onay linki gönderildi. Lütfen kaydınızı onaylayın.",
       });
       // Clear form and switch to sign in tab
       setEmail("");

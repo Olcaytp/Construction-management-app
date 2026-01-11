@@ -23,6 +23,7 @@ import { ContractsSection } from "@/components/ContractsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { HeaderMenu } from "@/components/HeaderMenu";
 import { MobileTabMenu } from "@/components/MobileTabMenu";
+import { OnboardingModal } from "@/components/OnboardingModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
@@ -30,9 +31,12 @@ import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useSubscription, PLAN_LIMITS } from "@/hooks/useSubscription";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useEffect } from "react";
+
 const Index = () => {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Dil bilgisini buradan çekiyoruz:
     const currentLanguage = i18n.language; // 'tr', 'sv', 'en' gibi bir değer dönecektir.
@@ -58,9 +62,16 @@ const Index = () => {
       return symbolAtEnd ? `${formattedAmount} ${symbol}` : `${symbol}${formattedAmount}`;
     };
 
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { isPremium } = useSubscription();
   const { isAdmin } = useAdmin();
+
+  // Show onboarding if user hasn't filled in profile yet
+  useEffect(() => {
+    if (user && !user.user_metadata?.full_name) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
   const { projects, isLoading: projectsLoading, addProject, updateProject, deleteProject } = useProjects();
   const { tasks, isLoading: tasksLoading, addTask, updateTask, deleteTask } = useTasks();
   const { teamMembers, isLoading: membersLoading, addTeamMember, updateTeamMember, deleteTeamMember } = useTeamMembers();
@@ -234,6 +245,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <OnboardingModal open={showOnboarding} onComplete={() => setShowOnboarding(false)} />
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4">

@@ -32,6 +32,7 @@ export const SUBSCRIPTION_TIERS = {
       "5 ekip üyesi",
       "2 fotoğraf/proje",
       "Temel raporlama",
+      "Basit AI sözleşme ve malzeme önerileri",
       "E-posta desteği"
     ]
   },
@@ -48,8 +49,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız ekip üyesi",
       "5 fotoğraf/proje",
       "Gelişmiş raporlama",
-      "AI malzeme önerileri",
-      "Sözleşme oluşturma",
+      "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",
       "Öncelikli destek"
     ]
   },
@@ -68,8 +68,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız ekip üyesi",
       "5 fotoğraf/proje",
       "Gelişmiş raporlama",
-      "AI malzeme önerileri",
-      "Sözleşme oluşturma",
+      "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",
       "Öncelikli destek",
       "✨ %25 tasarruf! (Aylık 208.33₺)"
     ]
