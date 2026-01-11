@@ -466,7 +466,13 @@
     "required": "Bu alan gereklidir",
     "fullNameRequired": "Lütfen adınızı ve soyadınızı girin",
     "projectNameRequired": "Lütfen proje adını girin",
-    "titleRequired": "Proje adı en az 2 karakter olmalı"
+    "titleRequired": "Proje adı en az 2 karakter olmalı",
+    "taskTitleRequired": "Görev adı en az 2 karakter olmalı",
+    "nameRequired": "Ad en az 2 karakter olmalı",
+    "phoneRequired": "Telefon en az 10 karakter olmalı",
+    "specialtyRequired": "Uzmanlık en az 2 karakter olmalı",
+    "customerNameRequired": "Müşteri adı en az 2 karakter olmalı",
+    "hourlyRateRequired": "Saatlik ücret 0'dan büyük olmalı"
   },
   "common": {
     "edit": "Düzenle",

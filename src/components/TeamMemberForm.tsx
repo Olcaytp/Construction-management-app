@@ -20,13 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const formSchema = z.object({
-  name: z.string().min(2),
-  phone: z.string().min(10),
-  specialty: z.string().min(2),
-  dailyWage: z.coerce.number().min(0),
-  totalReceivable: z.coerce.number().min(0),
-  totalPaid: z.coerce.number().min(0),
+const getFormSchema = (t: any) => z.object({
+  name: z.string().min(2, t("validation.nameRequired") || "Ad en az 2 karakter olmalı"),
+  phone: z.string().min(10, t("validation.phoneRequired") || "Telefon en az 10 karakter olmalı"),
+  specialty: z.string().min(2, t("validation.specialtyRequired") || "Uzmanlık en az 2 karakter olmalı"),
+  dailyWage: z.coerce.number().min(0).default(0),
+  totalReceivable: z.coerce.number().min(0).default(0),
+  totalPaid: z.coerce.number().min(0).default(0),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -47,6 +47,7 @@ export const TeamMemberForm = ({
   title,
 }: TeamMemberFormProps) => {
   const { t } = useTranslation();
+  const formSchema = getFormSchema(t);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -54,9 +55,9 @@ export const TeamMemberForm = ({
       name: "",
       phone: "",
       specialty: "",
-      dailyWage: "",
-      totalReceivable: "",
-      totalPaid: "",
+      dailyWage: 0,
+      totalReceivable: 0,
+      totalPaid: 0,
     },
   });
 
@@ -68,9 +69,9 @@ export const TeamMemberForm = ({
         name: "",
         phone: "",
         specialty: "",
-        dailyWage: "",
-        totalReceivable: "",
-        totalPaid: "",
+        dailyWage: 0,
+        totalReceivable: 0,
+        totalPaid: 0,
       });
     }
   }, [defaultValues, form]);

@@ -29,14 +29,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const formSchema = z.object({
-  title: z.string().min(2),
-  project: z.string().min(1),
-  assignee: z.string().min(1),
-  dueDate: z.string().min(1),
+const getFormSchema = (t: any) => z.object({
+  title: z.string().min(2, t("validation.taskTitleRequired") || "Görev adı en az 2 karakter olmalı"),
+  project: z.string().min(1, t("validation.required") || "Lütfen proje seçin"),
+  assignee: z.string().min(1, t("validation.required") || "Lütfen sorumlu seçin"),
+  dueDate: z.string().min(1, t("validation.required") || "Lütfen tarih seçin"),
   status: z.enum(["pending", "in-progress", "completed"]),
   priority: z.enum(["low", "medium", "high"]),
-  estimatedCost: z.coerce.number().min(0),
+  estimatedCost: z.coerce.number().min(0).default(0),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -61,6 +61,7 @@ export const TaskForm = ({
   teamMembers,
 }: TaskFormProps) => {
   const { t } = useTranslation();
+  const formSchema = getFormSchema(t);
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues || {
@@ -70,7 +71,7 @@ export const TaskForm = ({
       dueDate: "",
       status: "pending",
       priority: "medium",
-      estimatedCost: "",
+      estimatedCost: 0,
     },
   });
 
@@ -85,7 +86,7 @@ export const TaskForm = ({
         dueDate: "",
         status: "pending",
         priority: "medium",
-        estimatedCost: "",
+        estimatedCost: 0,
       });
     }
   }, [defaultValues, form]);

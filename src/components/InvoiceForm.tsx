@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,10 +22,27 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Plus } from "lucide-react";
 import { WORK_TYPES, Invoice } from "@/hooks/useInvoices";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useProjects } from "@/hooks/useProjects";
+
+const getFormSchema = (t: any) => z.object({
+  project_id: z.string().min(1, t("validation.required") || "Project must be selected"),
+  assigned_to: z.string().optional(),
+  work_type: z.string().min(1, t("validation.required") || "Work type must be selected"),
+  work_type_label: z.string().optional(),
+  quantity: z.coerce.number().min(0.01, t("validation.required") || "Quantity must be greater than 0").default(0),
+  unit: z.string().min(1, t("validation.required") || "Unit must be specified").default("adet"),
+  unit_price: z.coerce.number().min(0.01, t("validation.required") || "Unit price must be greater than 0").default(0),
+  description: z.string().optional(),
+  status: z.enum(["pending", "approved", "paid"]).default("pending"),
+  custom_work_type: z.string().optional(),
+  custom_unit: z.string().optional(),
+});
+
+type InvoiceFormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface InvoiceFormProps {
   projectId?: string;
@@ -43,14 +63,28 @@ export const InvoiceForm = ({
   const { teamMembers } = useTeamMembers();
   const { projects } = useProjects();
   const [isOpen, setIsOpen] = useState(controlledIsOpen ?? false);
-  const [selectedProject, setSelectedProject] = useState(initialData?.project_id || defaultProjectId || "");
-  const [selectedWorkType, setSelectedWorkType] = useState(initialData?.work_type || "");
-  const [customWorkType, setCustomWorkType] = useState("");
-  const [customUnit, setCustomUnit] = useState("adet");
-  const [selectedWorker, setSelectedWorker] = useState(initialData?.assigned_to || "");
-  const [quantity, setQuantity] = useState(initialData?.quantity?.toString() || "");
-  const [unitPrice, setUnitPrice] = useState(initialData?.unit_price?.toString() || "");
-  const [description, setDescription] = useState(initialData?.description || "");
+  
+  const formSchema = getFormSchema(t);
+
+  const form = useForm<InvoiceFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      project_id: initialData?.project_id || defaultProjectId || "",
+      assigned_to: initialData?.assigned_to || "",
+      work_type: initialData?.work_type || "",
+      work_type_label: initialData?.work_type_label || "",
+      quantity: initialData?.quantity || 0,
+      unit: initialData?.unit || "adet",
+      unit_price: initialData?.unit_price || 0,
+      description: initialData?.description || "",
+      status: (initialData?.status as any) || "pending",
+      custom_work_type: "",
+      custom_unit: "adet",
+    },
+  });
+
+  const watchValues = form.watch();
+  const isCustomWorkType = watchValues.work_type === "custom";
 
   const formatCurrency = (amount: number) => {
     const lang = i18n.language;
@@ -67,42 +101,48 @@ export const InvoiceForm = ({
 
   const getWorkTypeLabel = (value: string) => t(`invoice.workTypes.${value}`, { defaultValue: WORK_TYPES.find((type) => type.value === value)?.label || value });
 
-  const isCustomWorkType = selectedWorkType === "custom";
-  const selectedType = WORK_TYPES.find((t) => t.value === selectedWorkType);
-  const unit = isCustomWorkType ? customUnit : (selectedType?.unit || t("invoice.form.unit"));
-  const workTypeLabel = isCustomWorkType ? customWorkType : getWorkTypeLabel(selectedWorkType);
-  const total = quantity && unitPrice ? parseFloat(quantity) * parseFloat(unitPrice) : 0;
+  const selectedType = WORK_TYPES.find((t) => t.value === watchValues.work_type);
+  const unit = isCustomWorkType ? (watchValues.custom_unit || "adet") : (selectedType?.unit || t("invoice.form.unit"));
+  const workTypeLabel = isCustomWorkType ? watchValues.custom_work_type : getWorkTypeLabel(watchValues.work_type);
+  const total = (watchValues.quantity || 0) * (watchValues.unit_price || 0);
 
-  const handleSubmit = () => {
-    const finalWorkType = isCustomWorkType ? customWorkType : selectedWorkType;
-    if (!selectedProject || !finalWorkType || !quantity || !unitPrice) {
-      alert(t("invoice.form.fillRequired"));
-      return;
+  const handleSubmit = async (values: InvoiceFormValues) => {
+    try {
+      const finalWorkType = isCustomWorkType ? values.custom_work_type : values.work_type;
+      if (!values.project_id || !finalWorkType || !values.quantity || !values.unit_price) {
+        return;
+      }
+
+      onSubmit({
+        project_id: values.project_id,
+        assigned_to: values.assigned_to || undefined,
+        work_type: isCustomWorkType ? "custom" : values.work_type,
+        work_type_label: workTypeLabel,
+        quantity: values.quantity,
+        unit: unit,
+        unit_price: values.unit_price,
+        description: values.description || undefined,
+        status: values.status,
+      });
+
+      form.reset({
+        project_id: defaultProjectId || "",
+        assigned_to: "",
+        work_type: "",
+        work_type_label: "",
+        quantity: 0,
+        unit: "adet",
+        unit_price: 0,
+        description: "",
+        status: "pending",
+        custom_work_type: "",
+        custom_unit: "adet",
+      });
+      setIsOpen(false);
+      onOpenChange?.(false);
+    } catch (error) {
+      console.error("Form submission error:", error);
     }
-
-    onSubmit({
-      project_id: selectedProject,
-      assigned_to: selectedWorker || undefined,
-      work_type: isCustomWorkType ? "custom" : selectedWorkType,
-      work_type_label: workTypeLabel,
-      quantity: parseFloat(quantity),
-      unit: unit,
-      unit_price: parseFloat(unitPrice),
-      description: description || undefined,
-      status: "pending",
-    });
-
-    // Reset form
-    setSelectedProject(defaultProjectId || "");
-    setSelectedWorkType("");
-    setCustomWorkType("");
-    setCustomUnit("adet");
-    setSelectedWorker("");
-    setQuantity("");
-    setUnitPrice("");
-    setDescription("");
-    setIsOpen(false);
-    onOpenChange?.(false);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -124,143 +164,192 @@ export const InvoiceForm = ({
           <DialogDescription>{t("invoice.form.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Project Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="project">{t("invoice.form.project")}</Label>
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger id="project">
-                <SelectValue placeholder={t("invoice.form.projectPlaceholder") || undefined} />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.length === 0 ? (
-                  <div className="p-2 text-sm text-muted-foreground">{t("invoice.form.projectEmpty")}</div>
-                ) : (
-                  projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.title}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Worker Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="worker">{t("invoice.form.workerOptional")}</Label>
-            <Select value={selectedWorker} onValueChange={setSelectedWorker}>
-              <SelectTrigger id="worker">
-                <SelectValue placeholder={t("invoice.form.workerPlaceholder") || undefined} />
-              </SelectTrigger>
-              <SelectContent>
-                {teamMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name} - {member.specialty}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {teamMembers.length === 0 && (
-              <p className="text-xs text-muted-foreground">{t("invoice.form.noTeamMembers")}</p>
-            )}
-          </div>
-
-          {/* Work Type */}
-          <div className="space-y-2">
-            <Label htmlFor="work-type">{t("invoice.form.workType")}</Label>
-            <Select value={selectedWorkType} onValueChange={setSelectedWorkType}>
-              <SelectTrigger id="work-type">
-                <SelectValue placeholder={t("invoice.form.workTypePlaceholder") || undefined} />
-              </SelectTrigger>
-              <SelectContent>
-                {WORK_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {getWorkTypeLabel(type.value)}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">+ Özel İş Türü Ekle</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Custom Work Type Input */}
-          {isCustomWorkType && (
-            <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-muted">
-              <div className="space-y-2">
-                <Label htmlFor="custom-work-type">İş Türü Adı</Label>
-                <Input
-                  id="custom-work-type"
-                  placeholder="örn: Boyacılık, Temizlik..."
-                  value={customWorkType}
-                  onChange={(e) => setCustomWorkType(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="custom-unit">Birim</Label>
-                <Input
-                  id="custom-unit"
-                  placeholder="örn: m², adet, m..."
-                  value={customUnit}
-                  onChange={(e) => setCustomUnit(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Quantity and Unit */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="quantity">{t("invoice.form.quantity")} ({unit})</Label>
-              <Input
-                id="quantity"
-                type="number"
-                placeholder=""
-                step="0.01"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="unit-price">{t("invoice.form.unitPrice", { symbol: currencySymbol })}</Label>
-              <Input
-                id="unit-price"
-                type="number"
-                placeholder=""
-                step="0.01"
-                value={unitPrice}
-                onChange={(e) => setUnitPrice(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Total Amount Display */}
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t("invoice.form.total")}</span>
-              <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">{t("invoice.form.descriptionLabel")}</Label>
-            <Textarea
-              id="description"
-              placeholder={t("invoice.form.descriptionPlaceholder") || undefined}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {/* Project Selection */}
+            <FormField
+              control={form.control}
+              name="project_id"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="text-sm font-medium">{t("invoice.form.project")}</label>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("invoice.form.projectPlaceholder") || undefined} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {projects.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">{t("invoice.form.projectEmpty")}</div>
+                      ) : (
+                        projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.title}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 justify-end pt-4">
-            <Button variant="outline" onClick={() => handleOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={handleSubmit}>{t("invoice.form.submit")}</Button>
-          </div>
-        </div>
+            {/* Worker Selection */}
+            <FormField
+              control={form.control}
+              name="assigned_to"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="text-sm font-medium">{t("invoice.form.workerOptional")}</label>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("invoice.form.workerPlaceholder") || undefined} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teamMembers.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name} - {member.specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {teamMembers.length === 0 && (
+                    <p className="text-xs text-muted-foreground">{t("invoice.form.noTeamMembers")}</p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Work Type */}
+            <FormField
+              control={form.control}
+              name="work_type"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="text-sm font-medium">{t("invoice.form.workType")}</label>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("invoice.form.workTypePlaceholder") || undefined} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {WORK_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {getWorkTypeLabel(type.value)}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">+ Özel İş Türü Ekle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Custom Work Type Input */}
+            {isCustomWorkType && (
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-muted">
+                <FormField
+                  control={form.control}
+                  name="custom_work_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <label className="text-sm font-medium">İş Türü Adı</label>
+                      <FormControl>
+                        <Input placeholder="örn: Boyacılık, Temizlik..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="custom_unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <label className="text-sm font-medium">Birim</label>
+                      <FormControl>
+                        <Input placeholder="örn: m², adet, m..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Quantity and Unit */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <label className="text-sm font-medium">{t("invoice.form.quantity")} ({unit})</label>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="unit_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <label className="text-sm font-medium">{t("invoice.form.unitPrice", { symbol: currencySymbol })}</label>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Total Amount Display */}
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{t("invoice.form.total")}</span>
+                <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="text-sm font-medium">{t("invoice.form.descriptionLabel")}</label>
+                  <FormControl>
+                    <Textarea placeholder={t("invoice.form.descriptionPlaceholder") || undefined} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Actions */}
+            <div className="flex gap-2 justify-end pt-4">
+              <Button type="button" variant="outline" onClick={() => {
+                form.reset();
+                setIsOpen(false);
+                onOpenChange?.(false);
+              }}>
+                {t("common.cancel")}
+              </Button>
+              <Button type="submit">{t("invoice.form.submit")}</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

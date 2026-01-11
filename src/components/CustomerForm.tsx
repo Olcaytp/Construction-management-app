@@ -21,13 +21,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-const formSchema = z.object({
-  name: z.string().min(2),
+const getFormSchema = (t: any) => z.object({
+  name: z.string().min(2, t("validation.customerNameRequired") || "Müşteri adı en az 2 karakter olmalı"),
   phone: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
-  totalReceivable: z.coerce.number().min(0),
-  totalPaid: z.coerce.number().min(0),
+  totalReceivable: z.coerce.number().min(0).default(0),
+  totalPaid: z.coerce.number().min(0).default(0),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -48,6 +48,7 @@ export const CustomerForm = ({
   title,
 }: CustomerFormProps) => {
   const { t } = useTranslation();
+  const formSchema = getFormSchema(t);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -56,8 +57,8 @@ export const CustomerForm = ({
       phone: "",
       address: "",
       notes: "",
-      totalReceivable: "",
-      totalPaid: "",
+      totalReceivable: 0,
+      totalPaid: 0,
     },
   });
 
@@ -70,8 +71,8 @@ export const CustomerForm = ({
         phone: "",
         address: "",
         notes: "",
-        totalReceivable: "",
-        totalPaid: "",
+        totalReceivable: 0,
+        totalPaid: 0,
       });
     }
   }, [defaultValues, form]);

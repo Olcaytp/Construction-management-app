@@ -466,7 +466,13 @@
     "required": "Det här fältet är obligatoriskt",
     "fullNameRequired": "Vänligen ange ditt förnamn och efternamn",
     "projectNameRequired": "Vänligen ange ett projektnamn",
-    "titleRequired": "Projektnamnet måste vara minst 2 tecken"
+    "titleRequired": "Projektnamnet måste vara minst 2 tecken",
+    "taskTitleRequired": "Uppgiftsnamnet måste vara minst 2 tecken",
+    "nameRequired": "Namnet måste vara minst 2 tecken",
+    "phoneRequired": "Telefon måste vara minst 10 tecken",
+    "specialtyRequired": "Specialitet måste vara minst 2 tecken",
+    "customerNameRequired": "Kundens namn måste vara minst 2 tecken",
+    "hourlyRateRequired": "Timlönen måste vara större än 0"
   },
   "common": {
     "edit": "Redigera",

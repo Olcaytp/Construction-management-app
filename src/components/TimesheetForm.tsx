@@ -18,21 +18,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { TeamMember } from "@/hooks/useTeamMembers";
 import type { CreateTimesheetInput, TimesheetEntry, UpdateTimesheetInput } from "@/hooks/useTimesheets";
 
-const formSchema = z.object({
-  memberId: z.string().min(1, "Ekip üyesi seçilmeli"),
-  workDate: z.string().min(1, "Tarih seçilmeli"),
+const getFormSchema = (t: any) => z.object({
+  memberId: z.string().min(1, t("validation.required") || "Member must be selected"),
+  workDate: z.string().min(1, t("validation.required") || "Date must be selected"),
   calculationType: z.enum(["hours", "days"]).default("hours"),
-  hoursWorked: z.coerce.number().min(0),
-  daysWorked: z.coerce.number().min(0),
-  overtimeHours: z.coerce.number().min(0),
-  leaveHours: z.coerce.number().min(0),
+  hoursWorked: z.coerce.number().min(0).default(0),
+  daysWorked: z.coerce.number().min(0).default(0),
+  overtimeHours: z.coerce.number().min(0).default(0),
+  leaveHours: z.coerce.number().min(0).default(0),
   leaveType: z.string().optional(),
-  hourlyRate: z.coerce.number().min(0.01, "Saatlik ücret 0'dan büyük olmalı"),
+  hourlyRate: z.coerce.number().min(0.01, t("validation.hourlyRateRequired") || "Hourly rate must be greater than 0").default(0),
   status: z.enum(["pending", "approved", "paid"]).default("pending"),
   notes: z.string().optional(),
 });
 
-export type TimesheetFormValues = z.infer<typeof formSchema>;
+export type TimesheetFormValues = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface TimesheetFormProps {
   open: boolean;
@@ -44,17 +44,18 @@ interface TimesheetFormProps {
 
 export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defaultValues }: TimesheetFormProps) => {
   const { t, i18n } = useTranslation();
+  const formSchema = getFormSchema(t);
 
   const resolveDefaults = () => ({
     memberId: defaultValues?.team_member_id || "",
     workDate: defaultValues?.work_date || new Date().toISOString().split("T")[0],
     calculationType: "hours" as const,
-    hoursWorked: defaultValues?.hours_worked ? defaultValues.hours_worked : undefined,
-    daysWorked: defaultValues?.hours_worked ? defaultValues.hours_worked / 8 : undefined,
-    overtimeHours: defaultValues?.overtime_hours ? defaultValues.overtime_hours : undefined,
-    leaveHours: defaultValues?.leave_hours ? defaultValues.leave_hours : undefined,
+    hoursWorked: defaultValues?.hours_worked ? defaultValues.hours_worked : 0,
+    daysWorked: defaultValues?.hours_worked ? defaultValues.hours_worked / 8 : 0,
+    overtimeHours: defaultValues?.overtime_hours ? defaultValues.overtime_hours : 0,
+    leaveHours: defaultValues?.leave_hours ? defaultValues.leave_hours : 0,
     leaveType: defaultValues?.leave_type || "",
-    hourlyRate: defaultValues?.hourly_rate ? defaultValues.hourly_rate : undefined,
+    hourlyRate: defaultValues?.hourly_rate ? defaultValues.hourly_rate : 0,
     status: (defaultValues?.status as TimesheetFormValues["status"]) || "pending",
     notes: defaultValues?.notes || "",
   });
