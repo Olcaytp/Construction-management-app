@@ -66,13 +66,14 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
 
     setLoading(true);
     try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       await addProject({
         title: projectName,
         description: projectLocation || t("project.titlePlaceholder") || "Yeni Proje",
         status: "planning",
         progress: 0,
-        startDate: new Date().toISOString(),
-        endDate: null as any,
+        startDate: today,
+        endDate: today,
         assignedTeam: [],
         customerId: null,
         budget: 0,

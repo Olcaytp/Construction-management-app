@@ -43,10 +43,10 @@ const numberRequired = (min = 0, max?: number) =>
   );
 
 const formSchema = z.object({
-  title: z.string().min(2),
-  description: z.string(),
-  startDate: z.string().min(1),
-  endDate: z.string().min(1),
+  title: z.string().min(2, "Proje adı en az 2 karakter olmalı"),
+  description: z.string().optional(),
+  startDate: z.string().default(new Date().toISOString().split('T')[0]),
+  endDate: z.string().optional(),
   assignedTeam: z.array(z.string()),
   customerId: z.string().optional(),
   status: z.enum(["planning", "active", "completed"]),
