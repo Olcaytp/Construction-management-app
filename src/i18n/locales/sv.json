@@ -143,13 +143,13 @@
     "createError": "Fel vid skapande av projekt"
   },
   "contract": {
-    "title": "Entreprenöravtal",
+    "title": "Arbetssäkerhet",
     "generate": "Skapa avtal",
     "generateButton": "Skapa med AI",
     "generating": "Skapar...",
     "generated": "Avtal skapades framgångsrikt",
     "generateError": "Fel vid skapande av avtal",
-    "description": "AI analyserar projektdetaljer och skapar ett professionellt entreprenöravtalsutkast.",
+    "description": "AI analyserar projektdetaljer och skapar ett professionellt arbetssäkerhetsutkast.",
     "downloadPDF": "Ladda ner PDF",
     "downloaded": "Avtal nedladdat som PDF",
     "save": "Spara avtal",
@@ -180,7 +180,8 @@
     "advancedClauses": "Avancerade kontraktklausuler",
     "paymentSchedule": "Betalningsschema",
     "penaltyClauses": "Straffbestämmelser",
-    "limitReached": "Månatlig gräns på 3 kontrakt uppnådd i gratisplanen"
+    "limitReached": "Månatlig gräns på 3 kontrakt uppnådd i gratisplanen",
+    "editNotice": "Redigering av kontrakt är en Premium-funktion"
   },
   "subscription": {
     "upgrade": "Uppgradera till Premium"

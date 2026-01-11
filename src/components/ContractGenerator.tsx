@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Download, Loader2, Save, Eye, Loader } from "lucide-react";
+import { FileText, Download, Loader2, Save, Eye, Loader, FileCheck, Clock, AlertCircle } from "lucide-react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,6 +70,8 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState<string>("");
   const [contract, setContract] = useState<string | null>(null);
   const [userCountry, setUserCountry] = useState<string | null>(null);
   const [userCurrency, setUserCurrency] = useState<string | null>(null);
@@ -284,6 +286,39 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
     }
   };
 
+  const handleEditStart = () => {
+    if (existingContract) {
+      setEditContent(existingContract.content);
+      setIsEditing(true);
+    }
+  };
+
+  const handleEditSave = async () => {
+    if (!existingContract || !editContent) return;
+    setIsSaving(true);
+    try {
+      await updateContract(existingContract.id, { content: editContent });
+      toast({ title: t("contract.saved") });
+      fetchContracts();
+      setIsEditing(false);
+      setViewOpen(false);
+    } catch (error) {
+      console.error("Error updating contract:", error);
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("contract.generateError"),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditContent("");
+  };
+
   return (
     <div className="flex gap-2">
       {existingContract && (
@@ -302,7 +337,22 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                   {existingContract.title}
                 </DialogTitle>
                 <div className="flex items-center gap-2">
-                  <Select value={existingContract.status || 'draft'} disabled={isStatusUpdating} onValueChange={handleStatusChange}>
+                  {!isEditing && isPremium && (
+                    <Button size="sm" variant="outline" onClick={handleEditStart} className="gap-2">
+                      ✏️ {t("common.edit")}
+                    </Button>
+                  )}
+                  {isEditing && (
+                    <>
+                      <Button size="sm" variant="default" onClick={handleEditSave} disabled={isSaving} className="gap-2">
+                        💾 {t("contract.save")}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleEditCancel} disabled={isSaving}>
+                        {t("common.cancel")}
+                      </Button>
+                    </>
+                  )}
+                  <Select value={existingContract.status || 'draft'} disabled={isStatusUpdating || isEditing} onValueChange={handleStatusChange}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
@@ -317,12 +367,22 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                 </div>
               </div>
             </DialogHeader>
-            <ScrollArea className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-hidden">
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none pr-4"
-                dangerouslySetInnerHTML={{ __html: mdToSafeHtml(existingContract.content) }}
+            {isEditing ? (
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="flex-1 p-4 border rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Sözleşme metnini düzenleyin..."
               />
-            </ScrollArea>
+            ) : (
+              <div className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-auto">
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none break-words"
+                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}
+                  dangerouslySetInnerHTML={{ __html: mdToSafeHtml(existingContract.content) }}
+                />
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -373,38 +433,100 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                 </div>
               )}
               {isPremium && (
-                <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">{t("contract.language") || "Dil"}</p>
+                <div className="w-full max-w-3xl space-y-5">
+                  {/* Dil Seçimi */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-foreground">{t("contract.language") || "Dil"}</label>
                     <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full border-2 border-slate-200 hover:border-blue-400 transition-colors h-11">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="tr">Türkçe</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="sv">Svenska</SelectItem>
-                        <SelectItem value="de">Deutsch</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="tr">🇹🇷 Türkçe</SelectItem>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                        <SelectItem value="sv">🇸🇪 Svenska</SelectItem>
+                        <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                        <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                        <SelectItem value="es">🇪🇸 Español</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">{t("contract.options") || "Seçenekler"}</p>
-                    <div className="flex flex-col gap-2 text-sm">
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={includeAdvancedClauses} onChange={(e) => setIncludeAdvancedClauses(e.target.checked)} />
-                        {t("contract.advancedClauses") || "Gelişmiş sözleşme maddeleri"}
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={includePaymentSchedule} onChange={(e) => setIncludePaymentSchedule(e.target.checked)} />
-                        {t("contract.paymentSchedule") || "Ödeme planı"}
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={includePenaltyClauses} onChange={(e) => setIncludePenaltyClauses(e.target.checked)} />
-                        {t("contract.penaltyClauses") || "Ceza hükümleri"}
-                      </label>
+
+                  {/* Seçenekler - Modern Card Design */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground">{t("contract.options") || "Seçenekler"}</label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {/* Advanced Clauses */}
+                      <div
+                        onClick={() => setIncludeAdvancedClauses(!includeAdvancedClauses)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                          includeAdvancedClauses
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                            : 'border-slate-200 bg-white dark:bg-slate-900 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FileCheck className={`h-5 w-5 ${includeAdvancedClauses ? 'text-blue-600' : 'text-slate-400'}`} />
+                          <div>
+                            <p className="font-medium text-sm">{t("contract.advancedClauses") || "Gelişmiş Sözleşme Maddeleri"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Detaylı hüküm ve şartlar</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={includeAdvancedClauses}
+                          onChange={(e) => setIncludeAdvancedClauses(e.target.checked)}
+                          className="w-5 h-5 rounded accent-blue-600 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Payment Schedule */}
+                      <div
+                        onClick={() => setIncludePaymentSchedule(!includePaymentSchedule)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                          includePaymentSchedule
+                            ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                            : 'border-slate-200 bg-white dark:bg-slate-900 hover:border-green-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Clock className={`h-5 w-5 ${includePaymentSchedule ? 'text-green-600' : 'text-slate-400'}`} />
+                          <div>
+                            <p className="font-medium text-sm">{t("contract.paymentSchedule") || "Ödeme Planı"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Ödeme takvimi ve koşulları</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={includePaymentSchedule}
+                          onChange={(e) => setIncludePaymentSchedule(e.target.checked)}
+                          className="w-5 h-5 rounded accent-green-600 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Penalty Clauses */}
+                      <div
+                        onClick={() => setIncludePenaltyClauses(!includePenaltyClauses)}
+                        className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                          includePenaltyClauses
+                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
+                            : 'border-slate-200 bg-white dark:bg-slate-900 hover:border-orange-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className={`h-5 w-5 ${includePenaltyClauses ? 'text-orange-600' : 'text-slate-400'}`} />
+                          <div>
+                            <p className="font-medium text-sm">{t("contract.penaltyClauses") || "Ceza Hükümleri"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Temerrüt ve ceza koşulları</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={includePenaltyClauses}
+                          onChange={(e) => setIncludePenaltyClauses(e.target.checked)}
+                          className="w-5 h-5 rounded accent-orange-600 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -453,10 +575,12 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                   {t("contract.wordDownload")}
                 </Button>
               </div>
-              <ScrollArea className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-hidden">
-                <div className="prose prose-sm dark:prose-invert max-w-none pr-4"
+              <div className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-auto">
+                <div 
+                  className="prose prose-sm dark:prose-invert max-w-none break-words"
+                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}
                   dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract) }} />
-              </ScrollArea>
+              </div>
             </div>
           )}
         </DialogContent>

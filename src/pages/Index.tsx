@@ -370,11 +370,11 @@ const Index = () => {
         </Tabs>
       </div>
 
-      <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="w-full px-3 sm:px-4 py-4 sm:py-8 max-w-7xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <StatsCard
                 title={t('stats.totalProjects')}
                 value={projects.filter(p => p.status === 'active').length}
@@ -651,7 +651,7 @@ const Index = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t('app.economy')}</h2>
             
             {/* Financial Summary Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatsCard
                 title={t('stats.totalBudget')}
                 // GÜNCELLENMİŞ
@@ -707,21 +707,21 @@ const Index = () => {
                                         {formatCurrency(profit)}
                                     </span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 mb-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-3">
                                     <div>
                                     <p className="text-xs text-muted-foreground">{t('project.budget')}</p>
                                         {/* Bütçe Değeri */}
-                                        <p className="font-semibold">{formatCurrency(project.budget || 0)}</p>
+                                        <p className="font-semibold text-sm sm:text-base">{formatCurrency(project.budget || 0)}</p>
                                     </div>
                                     <div>
                                     <p className="text-xs text-muted-foreground">{t('project.revenue')}</p>
                                         {/* Gelir Değeri */}
-                                        <p className="font-semibold text-green-600">{formatCurrency(project.revenue || 0)}</p>
+                                        <p className="font-semibold text-green-600 text-sm sm:text-base">{formatCurrency(project.revenue || 0)}</p>
                                     </div>
                                     <div>
                                     <p className="text-xs text-muted-foreground">{t('project.actualCost')}</p>
                                       {/* Maliyet Değeri */}
-                                      <p className="font-semibold text-orange-600 text-right">{formatCurrency(project.actualCost || 0)}</p>
+                                      <p className="font-semibold text-orange-600 text-right text-sm sm:text-base">{formatCurrency(project.actualCost || 0)}</p>
                                     </div>
                                 </div>
                                 {/* ... Bütçe Kullanımı çubuğu ve yüzdesi (burada değişiklik yok) ... */}

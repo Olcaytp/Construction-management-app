@@ -143,13 +143,13 @@
     "createError": "Proje oluşturulurken hata oluştu"
   },
   "contract": {
-    "title": "Taşeron Sözleşmesi",
+    "title": "İş Sözleşmesi",
     "generate": "Sözleşme Oluştur",
     "generateButton": "AI ile Sözleşme Oluştur",
     "generating": "Oluşturuluyor...",
     "generated": "Sözleşme başarıyla oluşturuldu",
     "generateError": "Sözleşme oluşturulurken hata oluştu",
-    "description": "AI, proje detaylarını analiz ederek profesyonel bir taşeron sözleşmesi taslağı hazırlayacak.",
+    "description": "AI, proje detaylarını analiz ederek profesyonel bir iş sözleşmesi taslağı hazırlayacak.",
     "downloadPDF": "PDF İndir",
     "downloaded": "Sözleşme PDF olarak indirildi",
     "save": "Sözleşmeyi Kaydet",
@@ -180,7 +180,8 @@
     "advancedClauses": "Gelişmiş sözleşme maddeleri",
     "paymentSchedule": "Ödeme planı",
     "penaltyClauses": "Ceza hükümleri",
-    "limitReached": "Ücretsiz planda aylık 3 sözleşme limiti"
+    "limitReached": "Ücretsiz planda aylık 3 sözleşme limiti",
+    "editNotice": "Sözleşmeleri düzenlemek Premium özelliğidir"
   },
   "subscription": {
     "upgrade": "Premium'a Yükselt"

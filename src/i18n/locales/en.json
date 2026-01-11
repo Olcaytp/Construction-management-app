@@ -143,13 +143,13 @@
     "createError": "Error creating project"
   },
   "contract": {
-    "title": "Subcontractor Agreement",
+    "title": "Work Agreement",
     "generate": "Generate Contract",
-    "generateButton": "Generate with AI",
+    "generateButton": "Generate Contract with AI",
     "generating": "Generating...",
     "generated": "Contract generated successfully",
     "generateError": "Error generating contract",
-    "description": "AI will analyze project details and create a professional subcontractor agreement draft.",
+    "description": "AI will analyze the project details and prepare a professional work agreement draft.",
     "downloadPDF": "Download PDF",
     "downloaded": "Contract downloaded as PDF",
     "save": "Save Contract",
@@ -180,7 +180,8 @@
     "advancedClauses": "Advanced contract clauses",
     "paymentSchedule": "Payment schedule",
     "penaltyClauses": "Penalty clauses",
-    "limitReached": "Monthly limit of 3 contracts reached on free plan"
+    "limitReached": "Monthly limit of 3 contracts reached on free plan",
+    "editNotice": "Editing contracts is a Premium feature"
   },
   "subscription": {
     "upgrade": "Upgrade to Premium"
