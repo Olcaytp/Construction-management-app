@@ -262,8 +262,8 @@ export const HeaderMenu = () => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10">
-            <Menu className="h-6 w-6" />
+          <Button variant="ghost" size="icon" className="h-12 w-12 sm:h-10 sm:w-10 mr-2 sm:mr-0">
+            <Menu className="h-7 w-7 sm:h-6 sm:w-6" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

@@ -9,7 +9,8 @@ import {
   Download, 
   Trash2, 
   Eye,
-  AlertCircle
+  AlertCircle,
+  Save
 } from "lucide-react";
 import {
   Dialog,
@@ -24,6 +25,7 @@ import { tr } from "date-fns/locale";
 import { useState } from "react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const stripMarkdown = (text: string) =>
   text
@@ -43,10 +45,14 @@ const mdToSafeHtml = (text: string) => {
 };
 
 export const ContractsSection = () => {
-  const { contracts, loading, deleteContract } = useContracts();
+  const { contracts, loading, deleteContract, updateContract } = useContracts();
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const { isPremium } = useSubscription();
   const [selectedContract, setSelectedContract] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleDelete = async (id: string) => {
     if (!confirm(t("contract.deleteConfirm"))) return;
@@ -119,6 +125,34 @@ export const ContractsSection = () => {
     a.download = `${contract.title}.doc`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleEditStart = (contract: any) => {
+    setEditContent(contract.content);
+    setIsEditing(true);
+  };
+
+  const handleEditSave = async (contractId: string) => {
+    if (!editContent) return;
+    setIsSaving(true);
+    try {
+      await updateContract(contractId, { content: editContent });
+      toast({ title: t("contract.saved") });
+      setIsEditing(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: t("contract.generateError"),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditContent("");
   };
 
   const getStatusBadge = (status: string) => {
@@ -201,39 +235,75 @@ export const ContractsSection = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedContract(contract.id)}
+                          onClick={() => {
+                            setSelectedContract(contract.id);
+                            setIsEditing(false);
+                            setEditContent("");
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[90vh]">
-                        <DialogHeader>
-                          <DialogTitle>{contract.title}</DialogTitle>
+                      <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
+                        <DialogHeader className="flex-shrink-0">
+                          <div className="flex items-center justify-between">
+                            <DialogTitle>{contract.title}</DialogTitle>
+                            <div className="flex items-center gap-2">
+                              {!isEditing && isPremium && (
+                                <Button size="sm" variant="outline" onClick={() => handleEditStart(contract)} className="gap-2">
+                                  ✏️ {t("common.edit")}
+                                </Button>
+                              )}
+                              {isEditing && (
+                                <>
+                                  <Button size="sm" variant="default" onClick={() => handleEditSave(contract.id)} disabled={isSaving} className="gap-2">
+                                    <Save className="h-4 w-4" />
+                                    {t("contract.save")}
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={handleEditCancel} disabled={isSaving}>
+                                    {t("common.cancel")}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </DialogHeader>
-                        <ScrollArea className="h-[70vh] border rounded-lg p-4 bg-muted/30">
-                          <div className="prose prose-sm dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} />
-                        </ScrollArea>
-                        <div className="flex justify-end gap-2 mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownloadPDF(contract)}
-                            className="gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            {t("contract.pdfDownload")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownloadDoc(contract)}
-                            className="gap-2"
-                          >
-                            <Download className="h-4 w-4" />
-                            {t("contract.wordDownload")}
-                          </Button>
-                        </div>
+                        {isEditing ? (
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="flex-1 p-4 border rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Sözleşme metnini düzenleyin..."
+                          />
+                        ) : (
+                          <div className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-auto">
+                            <div className="prose prose-sm dark:prose-invert max-w-none break-words"
+                              style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}
+                              dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} />
+                          </div>
+                        )}
+                        {!isEditing && (
+                          <div className="flex justify-end gap-2 flex-shrink-0 mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(contract)}
+                              className="gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              {t("contract.pdfDownload")}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadDoc(contract)}
+                              className="gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              {t("contract.wordDownload")}
+                            </Button>
+                          </div>
+                        )}
                       </DialogContent>
                     </Dialog>
 
