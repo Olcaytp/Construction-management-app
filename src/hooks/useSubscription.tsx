@@ -9,13 +9,13 @@ export const PLAN_LIMITS = {
     maxProjects: 5,
     maxCustomers: 5,
     maxTeamMembers: 5,
-    maxPhotosPerProject: 10,
+    maxPhotosPerProject: 2,
   },
   premium: {
     maxProjects: Infinity,
     maxCustomers: Infinity,
     maxTeamMembers: Infinity,
-    maxPhotosPerProject: Infinity,
+    maxPhotosPerProject: 5,
   },
 } as const;
 
@@ -30,7 +30,7 @@ export const SUBSCRIPTION_TIERS = {
       "5 proje",
       "5 müşteri",
       "5 ekip üyesi",
-      "10 fotoğraf/proje",
+      "2 fotoğraf/proje",
       "Temel raporlama",
       "E-posta desteği"
     ]
@@ -46,7 +46,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız proje",
       "Sınırsız müşteri",
       "Sınırsız ekip üyesi",
-      "Sınırsız fotoğraf",
+      "5 fotoğraf/proje",
       "Gelişmiş raporlama",
       "AI malzeme önerileri",
       "Sözleşme oluşturma",
@@ -66,7 +66,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız proje",
       "Sınırsız müşteri",
       "Sınırsız ekip üyesi",
-      "Sınırsız fotoğraf",
+      "5 fotoğraf/proje",
       "Gelişmiş raporlama",
       "AI malzeme önerileri",
       "Sözleşme oluşturma",

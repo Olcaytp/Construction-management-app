@@ -54,9 +54,9 @@ export const TeamMemberForm = ({
       name: "",
       phone: "",
       specialty: "",
-      dailyWage: 0,
-      totalReceivable: 0,
-      totalPaid: 0,
+      dailyWage: "",
+      totalReceivable: "",
+      totalPaid: "",
     },
   });
 
@@ -68,9 +68,9 @@ export const TeamMemberForm = ({
         name: "",
         phone: "",
         specialty: "",
-        dailyWage: 0,
-        totalReceivable: 0,
-        totalPaid: 0,
+        dailyWage: "",
+        totalReceivable: "",
+        totalPaid: "",
       });
     }
   }, [defaultValues, form]);

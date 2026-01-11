@@ -15,10 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(1, "Malzeme adı gerekli"),
-  quantity: z.coerce.number().min(0, "Miktar 0'dan küçük olamaz"),
+  quantity: z.string().or(z.number()).optional().default(""),
   unit: z.string().min(1, "Birim gerekli"),
-  estimatedCost: z.coerce.number().min(0, "Tahmini maliyet 0'dan küçük olamaz"),
-  actualCost: z.coerce.number().min(0, "Gerçek maliyet 0'dan küçük olamaz"),
+  estimatedCost: z.string().or(z.number()).optional().default(""),
+  actualCost: z.string().or(z.number()).optional().default(""),
   status: z.string(),
   supplier: z.string().optional(),
   notes: z.string().optional(),
@@ -48,10 +48,10 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      quantity: 0,
+      quantity: "",
       unit: "adet",
-      estimatedCost: 0,
-      actualCost: 0,
+      estimatedCost: "",
+      actualCost: "",
       status: "planned",
       supplier: "",
       notes: "",
@@ -89,19 +89,31 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
   useEffect(() => {
     if (defaultValues) {
       form.reset({
+        name: defaultValues.name || "",
+        quantity: defaultValues.quantity ? String(defaultValues.quantity) : "",
+        unit: defaultValues.unit || "adet",
+        estimatedCost: defaultValues.estimatedCost ? String(defaultValues.estimatedCost) : "",
+        actualCost: defaultValues.actualCost ? String(defaultValues.actualCost) : "",
+        status: defaultValues.status || "planned",
+        supplier: defaultValues.supplier || "",
+        notes: defaultValues.notes || "",
+        currency: userCurrency,
+      });
+    } else if (open) {
+      form.reset({
         name: "",
-        quantity: 0,
+        quantity: "",
         unit: "adet",
-        estimatedCost: 0,
-        actualCost: 0,
+        estimatedCost: "",
+        actualCost: "",
         status: "planned",
         supplier: "",
         notes: "",
         currency: userCurrency,
-        ...defaultValues,
       });
     }
-  }, [defaultValues, form, userCurrency]);
+  }, [defaultValues, form, userCurrency, open]);
+
 
   const handleSuggestMaterials = async () => {
     if (!projectTitle) {
@@ -155,7 +167,14 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
   };
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data);
+    // Convert string numbers to actual numbers
+    const submittedData = {
+      ...data,
+      quantity: data.quantity ? Number(data.quantity) : 0,
+      estimatedCost: data.estimatedCost ? Number(data.estimatedCost) : 0,
+      actualCost: data.actualCost ? Number(data.actualCost) : 0,
+    };
+    onSubmit(submittedData);
     form.reset();
   };
 
@@ -204,7 +223,12 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
                   <FormItem>
                     <FormLabel>{t('material.quantity')}</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="0"
+                        value={field.value === "" ? "" : field.value}
+                        onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,7 +273,12 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
                   <FormItem>
                     <FormLabel>{t('material.estimatedCost')} ({userCurrency})</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="0"
+                        value={field.value === "" ? "" : field.value}
+                        onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -263,7 +292,12 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
                   <FormItem>
                     <FormLabel>{t('material.actualCost')} ({userCurrency})</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="0"
+                        value={field.value === "" ? "" : field.value}
+                        onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -330,7 +364,7 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
                 <FormItem>
                   <FormLabel>{t('material.notes')}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder={t('material.notesPlaceholder')} {...field} />
+                    <Textarea placeholder={t('material.notesPlaceholder')} {...field} rows={2} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

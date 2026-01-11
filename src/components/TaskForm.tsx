@@ -70,7 +70,7 @@ export const TaskForm = ({
       dueDate: "",
       status: "pending",
       priority: "medium",
-      estimatedCost: 0,
+      estimatedCost: "",
     },
   });
 
@@ -85,7 +85,7 @@ export const TaskForm = ({
         dueDate: "",
         status: "pending",
         priority: "medium",
-        estimatedCost: 0,
+        estimatedCost: "",
       });
     }
   }, [defaultValues, form]);

@@ -45,6 +45,8 @@ export const InvoiceForm = ({
   const [isOpen, setIsOpen] = useState(controlledIsOpen ?? false);
   const [selectedProject, setSelectedProject] = useState(initialData?.project_id || defaultProjectId || "");
   const [selectedWorkType, setSelectedWorkType] = useState(initialData?.work_type || "");
+  const [customWorkType, setCustomWorkType] = useState("");
+  const [customUnit, setCustomUnit] = useState("adet");
   const [selectedWorker, setSelectedWorker] = useState(initialData?.assigned_to || "");
   const [quantity, setQuantity] = useState(initialData?.quantity?.toString() || "");
   const [unitPrice, setUnitPrice] = useState(initialData?.unit_price?.toString() || "");
@@ -65,12 +67,15 @@ export const InvoiceForm = ({
 
   const getWorkTypeLabel = (value: string) => t(`invoice.workTypes.${value}`, { defaultValue: WORK_TYPES.find((type) => type.value === value)?.label || value });
 
+  const isCustomWorkType = selectedWorkType === "custom";
   const selectedType = WORK_TYPES.find((t) => t.value === selectedWorkType);
-  const unit = selectedType?.unit || t("invoice.form.unit");
+  const unit = isCustomWorkType ? customUnit : (selectedType?.unit || t("invoice.form.unit"));
+  const workTypeLabel = isCustomWorkType ? customWorkType : getWorkTypeLabel(selectedWorkType);
   const total = quantity && unitPrice ? parseFloat(quantity) * parseFloat(unitPrice) : 0;
 
   const handleSubmit = () => {
-    if (!selectedProject || !selectedWorkType || !quantity || !unitPrice) {
+    const finalWorkType = isCustomWorkType ? customWorkType : selectedWorkType;
+    if (!selectedProject || !finalWorkType || !quantity || !unitPrice) {
       alert(t("invoice.form.fillRequired"));
       return;
     }
@@ -78,8 +83,8 @@ export const InvoiceForm = ({
     onSubmit({
       project_id: selectedProject,
       assigned_to: selectedWorker || undefined,
-      work_type: selectedWorkType,
-      work_type_label: getWorkTypeLabel(selectedWorkType),
+      work_type: isCustomWorkType ? "custom" : selectedWorkType,
+      work_type_label: workTypeLabel,
       quantity: parseFloat(quantity),
       unit: unit,
       unit_price: parseFloat(unitPrice),
@@ -90,6 +95,8 @@ export const InvoiceForm = ({
     // Reset form
     setSelectedProject(defaultProjectId || "");
     setSelectedWorkType("");
+    setCustomWorkType("");
+    setCustomUnit("adet");
     setSelectedWorker("");
     setQuantity("");
     setUnitPrice("");
@@ -172,9 +179,34 @@ export const InvoiceForm = ({
                     {getWorkTypeLabel(type.value)}
                   </SelectItem>
                 ))}
+                <SelectItem value="custom">+ Özel İş Türü Ekle</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Custom Work Type Input */}
+          {isCustomWorkType && (
+            <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-muted">
+              <div className="space-y-2">
+                <Label htmlFor="custom-work-type">İş Türü Adı</Label>
+                <Input
+                  id="custom-work-type"
+                  placeholder="örn: Boyacılık, Temizlik..."
+                  value={customWorkType}
+                  onChange={(e) => setCustomWorkType(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="custom-unit">Birim</Label>
+                <Input
+                  id="custom-unit"
+                  placeholder="örn: m², adet, m..."
+                  value={customUnit}
+                  onChange={(e) => setCustomUnit(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Quantity and Unit */}
           <div className="grid grid-cols-2 gap-4">
@@ -183,7 +215,7 @@ export const InvoiceForm = ({
               <Input
                 id="quantity"
                 type="number"
-                placeholder="0"
+                placeholder=""
                 step="0.01"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
@@ -194,7 +226,7 @@ export const InvoiceForm = ({
               <Input
                 id="unit-price"
                 type="number"
-                placeholder="0"
+                placeholder=""
                 step="0.01"
                 value={unitPrice}
                 onChange={(e) => setUnitPrice(e.target.value)}

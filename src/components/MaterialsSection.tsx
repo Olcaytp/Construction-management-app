@@ -130,7 +130,7 @@ export const MaterialsSection = () => {
         const materialsToAdd = data.materials.map((m: any) => ({
           projectId: selectedProjectId,
           name: m.name,
-          quantity: m.quantity || 0,
+          quantity: m.quantity || 1,
           unit: m.unit || t("material.defaultUnit", { defaultValue: "pcs" }),
           estimatedCost: m.estimatedCost || 0,
           actualCost: 0,

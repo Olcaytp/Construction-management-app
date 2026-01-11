@@ -873,13 +873,7 @@ const Index = () => {
 
           <TabsContent value="invoices" className="space-y-4 sm:space-y-6">
             {projects.length > 0 ? (
-              <div className="space-y-6">
-                {projects.map((project) => (
-                  <div key={project.id}>
-                    <InvoicesSection projectId={project.id} projectTitle={project.title} />
-                  </div>
-                ))}
-              </div>
+              <InvoicesSection projects={projects} />
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Hakedis yönetimi için önce bir proje oluşturun.</p>

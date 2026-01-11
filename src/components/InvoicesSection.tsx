@@ -1,9 +1,17 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useInvoices, WORK_TYPES } from "@/hooks/useInvoices";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -28,14 +36,20 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-interface InvoicesSectionProps {
-  projectId: string;
-  projectTitle: string;
+interface Project {
+  id: string;
+  title: string;
 }
 
-export const InvoicesSection = ({ projectId, projectTitle }: InvoicesSectionProps) => {
+interface InvoicesSectionProps {
+  projects: Project[];
+}
+
+export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
   const { t, i18n } = useTranslation();
-  const { invoices, isLoading, createInvoice, deleteInvoice, approveInvoice } = useInvoices(projectId);
+  const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const { invoices, isLoading, createInvoice, deleteInvoice, approveInvoice } = useInvoices(selectedProjectId);
   const { teamMembers } = useTeamMembers();
 
   const formatCurrency = (amount: number) => {
@@ -95,7 +109,7 @@ export const InvoicesSection = ({ projectId, projectTitle }: InvoicesSectionProp
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `invoice-${projectTitle}-${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `invoice-${selectedProject?.title}-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     toast.success(t('invoice.export.csv'));
   };
@@ -134,7 +148,7 @@ export const InvoicesSection = ({ projectId, projectTitle }: InvoicesSectionProp
     doc.text(t('invoice.pdf.title'), pageWidth / 2, 15, { align: "center" });
 
     doc.setFontSize(12);
-    doc.text(`${t('invoice.pdf.project')}: ${projectTitle}`, pageWidth / 2, 22, { align: "center" });
+    doc.text(`${t('invoice.pdf.project')}: ${selectedProject?.title}`, pageWidth / 2, 22, { align: "center" });
 
     doc.setFontSize(10);
     doc.text(`${t('invoice.pdf.date')}: ${new Date().toLocaleDateString(i18n.language)}`, pageWidth / 2, 28, { align: "center" });
@@ -186,19 +200,37 @@ export const InvoicesSection = ({ projectId, projectTitle }: InvoicesSectionProp
       return;
     }
 
-    doc.save(`invoice-${projectTitle}-${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`invoice-${selectedProject?.title}-${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success(t('invoice.export.pdf'));
   };
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">{t('invoice.title')}</h2>
-          <p className="text-muted-foreground">{t('invoice.project')}: <span className="font-medium">{projectTitle}</span></p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold">{t('invoice.title')}</h2>
+          </div>
+          <InvoiceForm projectId={selectedProjectId} onSubmit={(data) => createInvoice.mutate(data)} />
         </div>
-        <InvoiceForm projectId={projectId} onSubmit={(data) => createInvoice.mutate(data)} />
+        
+        {/* Project Selection */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{t('invoice.project')}:</span>
+          <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder={t('invoice.form.projectPlaceholder') || "Proje seçin"} />
+            </SelectTrigger>
+            <SelectContent>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -283,7 +315,7 @@ export const InvoicesSection = ({ projectId, projectTitle }: InvoicesSectionProp
                 <TableBody>
                   {invoices.map((invoice) => (
                     <TableRow key={invoice.id}>
-                      <TableCell className="text-xs sm:text-sm font-medium text-blue-600">{projectTitle}</TableCell>
+                      <TableCell className="text-xs sm:text-sm font-medium text-blue-600">{selectedProject?.title}</TableCell>
                       <TableCell className="font-medium text-xs sm:text-sm">{getWorkTypeLabel(invoice.work_type)}</TableCell>
                       <TableCell className="text-xs sm:text-sm font-medium">{getWorkerName(invoice.assigned_to)}</TableCell>
                       <TableCell className="text-xs sm:text-sm">

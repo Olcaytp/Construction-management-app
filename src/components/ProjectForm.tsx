@@ -50,10 +50,10 @@ const formSchema = z.object({
   assignedTeam: z.array(z.string()),
   customerId: z.string().optional(),
   status: z.enum(["planning", "active", "completed"]),
-  progress: numberRequired(0, 100),
-  budget: numberRequired(0),
-  actualCost: numberRequired(0),
-  revenue: numberRequired(0),
+  progress: z.string(),
+  budget: z.string(),
+  actualCost: z.string(),
+  revenue: z.string(),
   photos: z.array(z.string()).optional(),
 });
 

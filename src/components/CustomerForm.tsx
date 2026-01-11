@@ -56,8 +56,8 @@ export const CustomerForm = ({
       phone: "",
       address: "",
       notes: "",
-      totalReceivable: 0,
-      totalPaid: 0,
+      totalReceivable: "",
+      totalPaid: "",
     },
   });
 
@@ -70,8 +70,8 @@ export const CustomerForm = ({
         phone: "",
         address: "",
         notes: "",
-        totalReceivable: 0,
-        totalPaid: 0,
+        totalReceivable: "",
+        totalPaid: "",
       });
     }
   }, [defaultValues, form]);
