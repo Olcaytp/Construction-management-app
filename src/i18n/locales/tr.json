@@ -465,7 +465,8 @@
   "validation": {
     "required": "Bu alan gereklidir",
     "fullNameRequired": "Lütfen adınızı ve soyadınızı girin",
-    "projectNameRequired": "Lütfen proje adını girin"
+    "projectNameRequired": "Lütfen proje adını girin",
+    "titleRequired": "Proje adı en az 2 karakter olmalı"
   },
   "common": {
     "edit": "Düzenle",

@@ -465,7 +465,8 @@
   "validation": {
     "required": "This field is required",
     "fullNameRequired": "Please enter your first and last name",
-    "projectNameRequired": "Please enter a project name"
+    "projectNameRequired": "Please enter a project name",
+    "titleRequired": "Project name must be at least 2 characters"
   },
   "common": {
     "edit": "Edit",

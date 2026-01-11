@@ -42,8 +42,8 @@ const numberRequired = (min = 0, max?: number) =>
       : z.coerce.number({ invalid_type_error: "Gerekli" }).min(min)
   );
 
-const formSchema = z.object({
-  title: z.string().min(2, "Proje adı en az 2 karakter olmalı"),
+const getFormSchema = (t: any) => z.object({
+  title: z.string().min(2, t("validation.titleRequired") || "Proje adı en az 2 karakter olmalı"),
   description: z.string().optional(),
   startDate: z.string().default(new Date().toISOString().split('T')[0]),
   endDate: z.string().optional(),
@@ -112,6 +112,7 @@ export const ProjectForm = ({
   const PHOTO_DEBUG = import.meta.env.DEV;
   
   const remainingPhotoSlots = maxPhotos - photoUrls.length;
+  const formSchema = getFormSchema(t);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

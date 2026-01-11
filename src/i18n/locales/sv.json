@@ -465,7 +465,8 @@
   "validation": {
     "required": "Det här fältet är obligatoriskt",
     "fullNameRequired": "Vänligen ange ditt förnamn och efternamn",
-    "projectNameRequired": "Vänligen ange ett projektnamn"
+    "projectNameRequired": "Vänligen ange ett projektnamn",
+    "titleRequired": "Projektnamnet måste vara minst 2 tecken"
   },
   "common": {
     "edit": "Redigera",
