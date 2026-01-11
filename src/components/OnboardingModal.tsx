@@ -60,7 +60,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
-      toast.error(t("validation.required") || "Lütfen proje adını girin");
+      toast.error("Lütfen proje adını girin");
       return;
     }
 
@@ -68,11 +68,11 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
     try {
       await addProject({
         title: projectName,
-        description: projectLocation,
+        description: projectLocation || "Yeni Proje",
         status: "planning",
         progress: 0,
         startDate: new Date().toISOString(),
-        endDate: "",
+        endDate: null as any,
         assignedTeam: [],
         customerId: null,
         budget: 0,
@@ -80,7 +80,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
         revenue: 0,
         photos: [],
       });
-      toast.success(t("projects.created") || "Proje oluşturuldu");
+      toast.success("Proje oluşturuldu");
       onComplete();
     } catch (error) {
       toast.error(t("common.error") || "Hata oluştu");
@@ -127,17 +127,22 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Ad Soyad *</Label>
+                  <Label htmlFor="fullName">
+                    Ad Soyad <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="fullName"
                     placeholder="Adınız ve soyadınız"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon (Opsiyonel)</Label>
+                  <Label htmlFor="phone">
+                    Telefon <span className="text-gray-400 text-xs">(Opsiyonel)</span>
+                  </Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -179,17 +184,22 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="projectName">Proje Adı *</Label>
+                  <Label htmlFor="projectName">
+                    Proje Adı <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="projectName"
                     placeholder="Örn: Ofis Renovasyonu"
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="projectLocation">Konum (Opsiyonel)</Label>
+                  <Label htmlFor="projectLocation">
+                    Konum <span className="text-gray-400 text-xs">(Opsiyonel)</span>
+                  </Label>
                   <Input
                     id="projectLocation"
                     placeholder="Şehir, Mahalle vb."
