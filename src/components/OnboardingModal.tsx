@@ -39,7 +39,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
 
   const handleSaveProfile = async () => {
     if (!fullName.trim()) {
-      toast.error(t("validation.required") || "Lütfen adınızı girin");
+      toast.error(t("validation.fullNameRequired") || "Lütfen adınızı ve soyadınızı girin");
       return;
     }
 
@@ -60,7 +60,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
 
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
-      toast.error("Lütfen proje adını girin");
+      toast.error(t("validation.projectNameRequired") || "Lütfen proje adını girin");
       return;
     }
 
@@ -68,7 +68,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
     try {
       await addProject({
         title: projectName,
-        description: projectLocation || "Yeni Proje",
+        description: projectLocation || t("project.titlePlaceholder") || "Yeni Proje",
         status: "planning",
         progress: 0,
         startDate: new Date().toISOString(),
@@ -80,7 +80,7 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
         revenue: 0,
         photos: [],
       });
-      toast.success("Proje oluşturuldu");
+      toast.success(t("project.created") || "Proje oluşturuldu");
       onComplete();
     } catch (error) {
       toast.error(t("common.error") || "Hata oluştu");

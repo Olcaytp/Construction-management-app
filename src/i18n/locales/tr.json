@@ -138,7 +138,9 @@
     "photoLimitPartialDesc": "Sadece {{uploaded}}/{{total}} fotoğraf yüklendi (limit: {{max}})",
     "noTeamMembers": "Önce Ekip sekmesinden ekip üyesi ekleyin",
     "cancel": "İptal",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "created": "Proje oluşturuldu",
+    "createError": "Proje oluşturulurken hata oluştu"
   },
   "contract": {
     "title": "Taşeron Sözleşmesi",
@@ -460,12 +462,18 @@
       "noUser": "Kullanıcı bulunamadı"
     }
   },
+  "validation": {
+    "required": "Bu alan gereklidir",
+    "fullNameRequired": "Lütfen adınızı ve soyadınızı girin",
+    "projectNameRequired": "Lütfen proje adını girin"
+  },
   "common": {
     "edit": "Düzenle",
     "delete": "Sil",
     "cancel": "İptal",
     "noData": "Veri bulunamadı",
     "error": "Hata",
+    "saved": "Kaydedildi",
     "loading": "Yükleniyor..."
   },
   "admin": {

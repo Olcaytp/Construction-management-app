@@ -138,7 +138,9 @@
     "photoLimitPartialDesc": "Only {{uploaded}}/{{total}} photos uploaded (limit: {{max}})",
     "noTeamMembers": "Add team members first in the Team tab.",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "created": "Project created",
+    "createError": "Error creating project"
   },
   "contract": {
     "title": "Subcontractor Agreement",
@@ -460,12 +462,18 @@
       "noUser": "User not found"
     }
   },
+  "validation": {
+    "required": "This field is required",
+    "fullNameRequired": "Please enter your first and last name",
+    "projectNameRequired": "Please enter a project name"
+  },
   "common": {
     "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel",
     "noData": "No data available",
     "error": "Error",
+    "saved": "Saved",
     "loading": "Loading..."
   },
   "admin": {
