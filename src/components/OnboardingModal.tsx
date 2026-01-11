@@ -67,10 +67,18 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
     setLoading(true);
     try {
       await addProject({
-        name: projectName,
-        location: projectLocation,
-        description: "",
+        title: projectName,
+        description: projectLocation,
         status: "planning",
+        progress: 0,
+        startDate: new Date().toISOString(),
+        endDate: "",
+        assignedTeam: [],
+        customerId: null,
+        budget: 0,
+        actualCost: 0,
+        revenue: 0,
+        photos: [],
       });
       toast.success(t("projects.created") || "Proje oluşturuldu");
       onComplete();
