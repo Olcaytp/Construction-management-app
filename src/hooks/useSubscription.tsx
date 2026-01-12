@@ -37,8 +37,8 @@ export const SUBSCRIPTION_TIERS = {
     ]
   },
   premium_monthly: {
-    product_id: "prod_TiJnuqsH5SgpBF",
-    price_id: "price_1SoAR6Bqz5IswCfZx0s7zlag",
+    product_id: "prod_Tm6RaLjOTuAMgO",
+    price_id: "price_1SoYEUBqz5IswCfZPLnFK8VG",
     name: "Premium (Aylık)",
     price: 250,
     currency: "TRY",
@@ -54,8 +54,8 @@ export const SUBSCRIPTION_TIERS = {
     ]
   },
   premium_yearly: {
-    product_id: "prod_TiJnuqsH5SgpBF",
-    price_id: "price_1SoAReBqz5IswCfZjiJklB1i",
+    product_id: "prod_Tm6SDgRvgAk69w",
+    price_id: "price_1SoYFrBqz5IswCfZqC0zTj9e",
     name: "Premium (Yıllık)",
     price: 2500,
     currency: "TRY",

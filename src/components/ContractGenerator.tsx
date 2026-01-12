@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 
 interface ContractGeneratorProps {
   project: Project;
@@ -44,17 +44,36 @@ interface ContractGeneratorProps {
   onContractSaved?: () => void;
 }
 
-const stripMarkdown = (text: string) =>
-  text
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/#{1,6}\s*/g, "")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/__([^_]*)__|_([^_]*)_/g, "$1$2")
-    .replace(/^\s*-\s+/gm, "")
-    .replace(/^\s*\d+\.\s+/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
+// Extract clean text from markdown while preserving content
+const cleanMarkdown = (text: string): string => {
+  if (!text) return "";
+  
+  // Parse markdown to HTML first
+  const html = marked.parse(text);
+  
+  // Create temporary div to extract text content
+  const temp = document.createElement('div');
+  temp.innerHTML = DOMPurify.sanitize(html as string);
+  
+  // Get text content and clean up
+  let plainText = temp.innerText || temp.textContent || "";
+  
+  // Remove any remaining markdown syntax
+  plainText = plainText
+    .replace(/\*\*(.+?)\*\*/g, "$1")  // Remove bold **text**
+    .replace(/\*(.+?)\*/g, "$1")      // Remove italic *text*
+    .replace(/__(.+?)__/g, "$1")      // Remove bold __text__
+    .replace(/_(.+?)_/g, "$1")        // Remove italic _text_
+    .replace(/~~(.+?)~~/g, "$1")      // Remove strikethrough ~~text~~
+    .replace(/`(.+?)`/g, "$1")        // Remove inline code `text`
+    .replace(/^\s*#{1,6}\s+/gm, "")   // Remove headings
+    .replace(/^\s*[-*+]\s+/gm, "• ")  // Convert list markers to bullets
+    .replace(/^\s*\d+\.\s+/gm, "")    // Remove numbered list markers
+    .replace(/\n{3,}/g, "\n\n")       // Clean up excessive whitespace
     .trim();
+  
+  return plainText;
+};
 
 const escapeHtml = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
@@ -164,69 +183,156 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
   const loadFont = async (doc: jsPDF) => {
     try {
       const fontUrl = `/fonts/DejaVuSans.ttf`;
-      const font = await fetch(fontUrl);
-      const fontData = await font.arrayBuffer();
-      const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(fontData)));
+      const response = await fetch(fontUrl);
+      if (!response.ok) {
+        console.error('Font fetch failed:', response.status);
+        return false;
+      }
+      const fontData = await response.arrayBuffer();
+      
+      // Convert ArrayBuffer to base64 in chunks to avoid call stack size issues
+      const uint8Array = new Uint8Array(fontData);
+      let binary = '';
+      const chunkSize = 0x8000; // 32KB chunks
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+        binary += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      const fontBase64 = btoa(binary);
+      
       doc.addFileToVFS("DejaVuSans.ttf", fontBase64);
       doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
       doc.setFont("DejaVuSans", "normal");
+      console.log('DejaVuSans font loaded successfully');
+      return true;
     } catch (e) {
-      console.warn("Could not load DejaVuSans font, falling back to default", e);
+      console.error("Failed to load DejaVuSans font:", e);
+      return false;
     }
   };
 
   const downloadPDF = async () => {
     if (!contract) return;
 
-    const doc = new jsPDF();
-    await loadFont(doc);
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+      
+      const fontLoaded = await loadFont(doc);
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const maxWidth = pageWidth - margin * 2;
-    
-    // Remove markdown formatting for PDF
-    const cleanText = stripMarkdown(contract);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15; // mm margins (standard for A4)
+      const maxWidth = pageWidth - margin * 2;
+      
+      // Extract clean text from markdown
+      const cleanText = cleanMarkdown(contract);
 
-    const lines = doc.splitTextToSize(cleanText, maxWidth);
-    
-    let y = 20;
-    const lineHeight = 6.5;
-    
-    doc.setFontSize(12);
-    doc.setFont("DejaVuSans", "normal");
-    
-    for (const line of lines) {
-      if (y > doc.internal.pageSize.getHeight() - 20) {
-        doc.addPage();
-        y = 20;
+      // Add title with proper encoding
+      doc.setFontSize(14);
+      if (fontLoaded) {
+        doc.setFont("DejaVuSans", "normal");
       }
-      doc.text(line, margin, y);
-      y += lineHeight;
-    }
+      
+      // Split title if too long
+      const titleText = `${project.title} - ${t("contract.title")}`;
+      const titleLines = doc.splitTextToSize(titleText, maxWidth);
+      let y = margin;
+      for (const titleLine of titleLines) {
+        doc.text(titleLine, margin, y);
+        y += 7;
+      }
+      
+      // Add content
+      doc.setFontSize(11);
+      y += 3; // Small gap after title
+      
+      // Split content into lines that fit within maxWidth
+      const lines = doc.splitTextToSize(cleanText, maxWidth);
+      const lineHeight = 6; // mm
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Check if we need a new page
+        if (y + lineHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+          if (fontLoaded) {
+            doc.setFont("DejaVuSans", "normal");
+          }
+        }
+        
+        // Draw the line
+        doc.text(line, margin, y);
+        y += lineHeight;
+      }
 
-    doc.save(`${project.title}_${t("contract.title")}.pdf`);
-    toast({ title: t("contract.downloaded") });
+      doc.save(`${project.title}_${t("contract.title")}.pdf`);
+      toast({ title: t("contract.downloaded") });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        variant: "destructive",
+        title: t("common.error"),
+        description: "PDF oluşturulurken hata oluştu. Lütfen tekrar deneyin.",
+      });
+    }
   };
 
   const downloadDoc = () => {
     if (!contract) return;
 
-    const cleanText = stripMarkdown(contract);
+    const cleanText = cleanMarkdown(contract);
 
-    const htmlContent = `<!doctype html>
+    // Create proper Word document with A4 formatting and Turkish support
+    const htmlContent = `<!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><style>body { font-family: Arial, sans-serif; line-height: 1.5; margin: 20px; }</style></head>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <style>
+    body {
+      font-family: 'Calibri', 'Arial', sans-serif;
+      line-height: 1.5;
+      margin: 20mm 15mm;
+      padding: 0;
+      color: #000;
+      font-size: 11pt;
+    }
+    h1 {
+      font-size: 16pt;
+      font-weight: bold;
+      margin-bottom: 15px;
+      margin-top: 0;
+    }
+    p {
+      margin: 8px 0;
+      text-align: justify;
+      orphans: 2;
+      widows: 2;
+    }
+    div {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
 <body>
-<pre>${cleanText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+  <h1>${`${project.title} - ${t("contract.title")}`.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h1>
+  <div>${cleanText.split('\n').map(p => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`).join('')}</div>
 </body>
 </html>`;
     
-    const blob = new Blob([htmlContent], { type: "application/msword" });
+    // Create blob with UTF-8 encoding
+    const blob = new Blob([htmlContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=UTF-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${project.title}_${t("contract.title")}.doc`;
+    a.download = `${project.title}_${t("contract.title")}.docx`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: t("contract.wordReady") });
@@ -329,14 +435,17 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
               {t("contract.view")}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
-            <DialogHeader className="flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  {existingContract.title}
+          <DialogContent 
+            className="w-full max-w-[840px] h-[90vh] flex flex-col overflow-hidden mx-auto"
+            aria-describedby="contract-view-description"
+          >
+            <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
+              <div className="flex items-center justify-between gap-4">
+                <DialogTitle className="flex items-center gap-2 flex-1">
+                  <FileText className="h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{existingContract.title}</span>
                 </DialogTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {!isEditing && isPremium && (
                     <Button size="sm" variant="outline" onClick={handleEditStart} className="gap-2">
                       ✏️ {t("common.edit")}
@@ -353,7 +462,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                     </>
                   )}
                   <Select value={existingContract.status || 'draft'} disabled={isStatusUpdating || isEditing} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-28">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -367,20 +476,25 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                 </div>
               </div>
             </DialogHeader>
+            <span id="contract-view-description" className="sr-only">
+              {t("contract.viewAndEdit") || "Sözleşme içeriğini görüntüleyin ve düzenleyin"}
+            </span>
             {isEditing ? (
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="flex-1 p-4 border rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-6 py-4 border-0 bg-white dark:bg-slate-950 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-none"
                 placeholder="Sözleşme metnini düzenleyin..."
               />
             ) : (
-              <div className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-auto">
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none break-words"
-                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}
-                  dangerouslySetInnerHTML={{ __html: mdToSafeHtml(existingContract.content) }}
-                />
+              <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
+                <div className="px-6 py-4">
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-[760px] break-words whitespace-normal"
+                    style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word' }}
+                    dangerouslySetInnerHTML={{ __html: mdToSafeHtml(existingContract.content) }}
+                  />
+                </div>
               </div>
             )}
           </DialogContent>
@@ -397,13 +511,19 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
             {t("contract.generate")}
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent 
+          className="w-full max-w-[840px] h-[90vh] flex flex-col overflow-hidden mx-auto"
+          aria-describedby="contract-generate-description"
+        >
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {t("contract.title")}- {project.title}
+              <FileText className="h-5 w-5 flex-shrink-0" />
+              <span className="truncate">{t("contract.title")}- {project.title}</span>
             </DialogTitle>
           </DialogHeader>
+          <span id="contract-generate-description" className="sr-only">
+            {t("contract.generateDescription") || "Yeni sözleşme oluşturun veya mevcut sözleşmeyi görüntüleyin"}
+          </span>
 
           {!contract ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-4 flex-1">
@@ -420,7 +540,8 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                       size="sm"
                       className="gap-2"
                       onClick={async () => {
-                        const url = await createCheckout?.("price_1SoAR6Bqz5IswCfZx0s7zlag");
+                        const priceId = SUBSCRIPTION_TIERS.premium_monthly.price_id as string;
+                        const url = await createCheckout?.(priceId);
                         if (url) window.open(url, "_blank");
                       }}
                     >

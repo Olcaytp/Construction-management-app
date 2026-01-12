@@ -45,7 +45,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    // Use a stable Stripe API version; avoid future-dated or invalid versions
+    const stripe = new Stripe(stripeKey, { apiVersion: "2022-11-15" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
       throw new Error("No Stripe customer found for this user");
@@ -66,7 +67,10 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage });
+    logStep("ERROR in customer-portal", {
+      message: errorMessage,
+      stack: (error as any)?.stack || undefined,
+    });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

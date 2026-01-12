@@ -52,7 +52,8 @@ serve(async (req) => {
     if (!priceId) throw new Error("Price ID is required");
     logStep("Price ID received", { priceId });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    // Use a stable Stripe API version; avoid future-dated or invalid versions
+    const stripe = new Stripe(stripeKey, { apiVersion: "2022-11-15" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
@@ -83,7 +84,11 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    // Improve diagnostics: include stack/message where available
+    logStep("ERROR in create-checkout", {
+      message: errorMessage,
+      stack: (error as any)?.stack || undefined,
+    });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

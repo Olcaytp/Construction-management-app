@@ -3,7 +3,8 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-  apiVersion: "2023-10-16",
+  // Use a stable Stripe API version
+  apiVersion: "2022-11-15",
 });
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
