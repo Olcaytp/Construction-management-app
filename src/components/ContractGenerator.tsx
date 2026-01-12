@@ -327,7 +327,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
     }
     p {
       margin: 10px 0;
-      text-align: justify;
+      text-align: left;
       orphans: 2;
       widows: 2;
       text-indent: 8mm;
