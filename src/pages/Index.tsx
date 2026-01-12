@@ -32,6 +32,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useSubscription, PLAN_LIMITS } from "@/hooks/useSubscription";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useEffect } from "react";
+import { useContracts } from "@/hooks/useContracts";
 
 const Index = () => {
   const { t, i18n } = useTranslation();
@@ -76,6 +77,7 @@ const Index = () => {
   const { tasks, isLoading: tasksLoading, addTask, updateTask, deleteTask } = useTasks();
   const { teamMembers, isLoading: membersLoading, addTeamMember, updateTeamMember, deleteTeamMember } = useTeamMembers();
   const { customers, isLoading: customersLoading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
+  const { contracts } = useContracts();
 
   // Tab menu items
   const tabItems = [
@@ -497,6 +499,23 @@ const Index = () => {
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map(project => {
                 const teamNames = project.assignedTeam.map(id => teamMembers.find(m => m.id === id)?.name || id).join(', ');
+                const projectContract = contracts.find(c => c.project_id === project.id) || null;
+                
+                // Check if contract-relevant fields changed (excluding photos)
+                const currentRelevantFields = JSON.stringify({
+                  title: project.title,
+                  description: project.description,
+                  startDate: project.startDate,
+                  endDate: project.endDate,
+                  budget: project.budget,
+                  customerId: project.customerId,
+                  assignedTeam: [...project.assignedTeam].sort(),
+                });
+                const canRegenerate = !projectContract || projectContract.project_snapshot !== currentRelevantFields;
+                const disableReason = !canRegenerate && projectContract
+                  ? t('contract.alreadyGenerated') || 'Sözleşme zaten oluşturuldu. Proje bilgilerini düzenlerseniz yeniden oluşturabilirsiniz.'
+                  : undefined;
+
                 return (
                   <div key={project.id} className="relative group">
                     <ProjectCard
@@ -513,11 +532,12 @@ const Index = () => {
                       }}
                     />
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div onClick={(e) => e.stopPropagation()}>
+                      <div onClick={(e) => e.stopPropagation()} title={disableReason}>
                         <ContractGenerator
                           project={project}
                           customer={customers.find(c => c.id === project.customerId) || null}
                           teamMembers={teamMembers.filter(m => project.assignedTeam.includes(m.id))}
+                          regenerationAllowed={canRegenerate}
                         />
                       </div>
                       <Button

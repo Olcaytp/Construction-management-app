@@ -42,6 +42,7 @@ interface ContractGeneratorProps {
     daily_wage?: number;
   }>;
   onContractSaved?: () => void;
+  regenerationAllowed?: boolean; // if false and contract exists, block new generation until project edited
 }
 
 // Extract clean text from markdown while preserving content
@@ -83,7 +84,7 @@ const mdToSafeHtml = (text: string) => {
   return DOMPurify.sanitize(html as string);
 };
 
-export const ContractGenerator = ({ project, customer, teamMembers, onContractSaved }: ContractGeneratorProps) => {
+export const ContractGenerator = ({ project, customer, teamMembers, onContractSaved, regenerationAllowed = true }: ContractGeneratorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -135,6 +136,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
     () => contracts.find((c) => c.project_id === project.id) || null,
     [contracts, project.id]
   );
+  const blockNewGeneration = Boolean(existingContract && !regenerationAllowed);
 
   const generateContract = async () => {
     setIsLoading(true);
@@ -288,51 +290,68 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
     if (!contract) return;
 
     const cleanText = cleanMarkdown(contract);
+    const paragraphs = cleanText
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean);
 
-    // Create proper Word document with A4 formatting and Turkish support
+    const safeTitle = escapeHtml(`${project.title} - ${t("contract.title")}`);
+    const bodyHtml = paragraphs
+      .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`)
+      .join('');
+
+    // Build an HTML-based .doc with proper A4 styling and UTF-8 for Turkish characters
     const htmlContent = `<!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <style>
+    @page { size: A4; margin: 20mm 15mm; }
     body {
-      font-family: 'Calibri', 'Arial', sans-serif;
-      line-height: 1.5;
-      margin: 20mm 15mm;
+      font-family: 'DejaVu Sans', 'Calibri', 'Arial', 'Segoe UI', sans-serif;
+      line-height: 1.65;
+      margin: 0;
       padding: 0;
-      color: #000;
+      color: #111;
       font-size: 11pt;
+      background: #fff;
     }
     h1 {
       font-size: 16pt;
-      font-weight: bold;
-      margin-bottom: 15px;
-      margin-top: 0;
+      font-weight: 700;
+      margin: 0 0 16px;
+      padding: 0;
+      text-align: center;
+      letter-spacing: 0.2pt;
     }
     p {
-      margin: 8px 0;
+      margin: 10px 0;
       text-align: justify;
       orphans: 2;
       widows: 2;
+      text-indent: 8mm;
     }
-    div {
+    .section {
       page-break-inside: avoid;
+      max-width: 160mm;
     }
   </style>
 </head>
 <body>
-  <h1>${`${project.title} - ${t("contract.title")}`.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h1>
-  <div>${cleanText.split('\n').map(p => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`).join('')}</div>
+  <div class="section">
+    <h1>${safeTitle}</h1>
+    ${bodyHtml}
+  </div>
 </body>
 </html>`;
     
-    // Create blob with UTF-8 encoding
-    const blob = new Blob([htmlContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=UTF-8" });
+    // Use .doc (HTML) with UTF-8 BOM to ensure Turkish characters render correctly in Word
+    const blob = new Blob(["\ufeff", htmlContent], { type: "application/msword;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${project.title}_${t("contract.title")}.docx`;
+    a.download = `${project.title}_${t("contract.title")}.doc`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: t("contract.wordReady") });
@@ -343,6 +362,17 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
 
     setIsSaving(true);
     try {
+      // Create snapshot of contract-relevant project fields (excluding photos)
+      const projectSnapshot = JSON.stringify({
+        title: project.title,
+        description: project.description,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        budget: project.budget,
+        customerId: project.customerId,
+        assignedTeam: [...project.assignedTeam].sort(),
+      });
+
       await saveContract({
         title: `${project.title} - ${t("contract.title")}`,
         content: contract,
@@ -353,6 +383,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
         contractor_address: customer?.address,
         contract_date: new Date().toISOString().split('T')[0],
         status: 'draft',
+        project_snapshot: projectSnapshot,
       });
 
       toast({ 
@@ -504,8 +535,14 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2"
-            disabled={!isPremium && contractsThisMonth >= FREE_MONTHLY_CONTRACT_LIMIT}
-            title={!isPremium && contractsThisMonth >= FREE_MONTHLY_CONTRACT_LIMIT ? (t("contract.limitReached") || "Ücretsiz planda aylık 3 sözleşme limiti") : undefined}
+            disabled={(!isPremium && contractsThisMonth >= FREE_MONTHLY_CONTRACT_LIMIT) || blockNewGeneration}
+            title={
+              blockNewGeneration
+                ? (t("contract.alreadyGenerated") || "Sözleşme zaten oluşturuldu. Proje bilgilerini düzenlerseniz yeniden oluşturabilirsiniz.")
+                : (!isPremium && contractsThisMonth >= FREE_MONTHLY_CONTRACT_LIMIT
+                  ? (t("contract.limitReached") || "Ücretsiz planda aylık 3 sözleşme limiti")
+                  : undefined)
+            }
           >
             <FileText className="h-4 w-4" />
             {t("contract.generate")}

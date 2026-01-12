@@ -16,6 +16,7 @@ export interface Contract {
   status: 'draft' | 'signed' | 'completed' | 'archived';
   created_at: string;
   updated_at: string;
+  project_snapshot?: string; // JSON snapshot of contract-relevant project fields
   project?: { title: string };
   customer?: { name: string };
 }

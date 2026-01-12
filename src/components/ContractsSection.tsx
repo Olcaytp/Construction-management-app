@@ -64,6 +64,14 @@ const mdToSafeHtml = (text: string) => {
   return DOMPurify.sanitize(html as string);
 };
 
+const escapeHtml = (text: string) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 export const ContractsSection = () => {
   const { contracts, loading, deleteContract, updateContract } = useContracts();
   const { t, i18n } = useTranslation();
@@ -191,51 +199,68 @@ export const ContractsSection = () => {
 
   const handleDownloadDoc = (contract: any) => {
     const cleanText = cleanMarkdown(contract.content);
+    const paragraphs = cleanText
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    const safeTitle = escapeHtml(contract.title);
+    const bodyHtml = paragraphs
+      .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`)
+      .join('');
     
-    // Create proper Word document with A4 formatting and Turkish support
+    // Build an HTML-based .doc with proper A4 styling and UTF-8 for Turkish characters
     const htmlContent = `<!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <style>
+    @page { size: A4; margin: 20mm 15mm; }
     body {
-      font-family: 'Calibri', 'Arial', sans-serif;
-      line-height: 1.5;
-      margin: 20mm 15mm;
+      font-family: 'DejaVu Sans', 'Calibri', 'Arial', 'Segoe UI', sans-serif;
+      line-height: 1.65;
+      margin: 0;
       padding: 0;
-      color: #000;
+      color: #111;
       font-size: 11pt;
+      background: #fff;
     }
     h1 {
       font-size: 16pt;
-      font-weight: bold;
-      margin-bottom: 15px;
-      margin-top: 0;
+      font-weight: 700;
+      margin: 0 0 16px;
+      padding: 0;
+      text-align: center;
+      letter-spacing: 0.2pt;
     }
     p {
-      margin: 8px 0;
+      margin: 10px 0;
       text-align: justify;
       orphans: 2;
       widows: 2;
+      text-indent: 8mm;
     }
-    div {
+    .section {
       page-break-inside: avoid;
+      max-width: 160mm;
     }
   </style>
 </head>
 <body>
-  <h1>${contract.title.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h1>
-  <div>${cleanText.split('\n').map(p => `<p>${p.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`).join('')}</div>
+  <div class="section">
+    <h1>${safeTitle}</h1>
+    ${bodyHtml}
+  </div>
 </body>
 </html>`;
     
-    // Create blob with UTF-8 encoding
-    const blob = new Blob([htmlContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=UTF-8" });
+    // Use .doc (HTML) with UTF-8 BOM to ensure Turkish characters render correctly in Word
+    const blob = new Blob(["\ufeff", htmlContent], { type: "application/msword;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${contract.title}.docx`;
+    a.download = `${contract.title}.doc`;
     a.click();
     URL.revokeObjectURL(url);
   };

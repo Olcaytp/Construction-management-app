@@ -16,6 +16,7 @@ export interface Project {
   actualCost: number;
   revenue: number;
   photos: string[];
+  updatedAt?: string;
 }
 
 export const useProjects = () => {
@@ -48,6 +49,7 @@ export const useProjects = () => {
         actualCost: Number(p.actual_cost) || 0,
         revenue: Number(p.revenue) || 0,
         photos: p.photos || [],
+        updatedAt: p.updated_at,
       }));
     },
   });
