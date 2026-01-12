@@ -108,11 +108,16 @@ export const ProfileDropdown = () => {
   };
 
   const handleCountryChange = async (newCountry: string) => {
-    const newCurrency = countryConfig[newCountry]?.currency || "TRY";
-    setCountry(newCountry);
-    setCurrency(newCurrency);
-
     try {
+      const newCurrency = countryConfig[newCountry]?.currency || "TRY";
+      setCountry(newCountry);
+      setCurrency(newCurrency);
+
+      if (!user?.id) {
+        console.warn("No user ID available");
+        return;
+      }
+
       await supabase
         .from("profiles")
         .upsert({
@@ -137,13 +142,13 @@ export const ProfileDropdown = () => {
   };
 
   const handleSaveName = async () => {
-    if (!fullName.trim()) {
-      toast({ variant: "destructive", title: "Hata", description: "Ad soyad boş olamaz" });
-      return;
-    }
-
-    setIsSaving(true);
     try {
+      if (!fullName.trim()) {
+        toast({ variant: "destructive", title: "Hata", description: "Ad soyad boş olamaz" });
+        return;
+      }
+
+      setIsSaving(true);
       await updateUserProfile({ full_name: fullName.trim() });
       toast({ title: "Başarılı", description: "Ad soyad güncellendi" });
       setEditingName(false);
@@ -161,13 +166,13 @@ export const ProfileDropdown = () => {
   };
 
   const handleSavePhone = async () => {
-    if (phone && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
-      toast({ variant: "destructive", title: "Hata", description: "Geçerli bir telefon numarası girin" });
-      return;
-    }
-
-    setIsSaving(true);
     try {
+      if (phone && !/^[\d\s\-\+\(\)]+$/.test(phone)) {
+        toast({ variant: "destructive", title: "Hata", description: "Geçerli bir telefon numarası girin" });
+        return;
+      }
+
+      setIsSaving(true);
       await updateUserProfile({ phone: phone.trim() });
       toast({ title: "Başarılı", description: "Telefon numarası güncellendi" });
       setEditingPhone(false);
@@ -206,16 +211,32 @@ export const ProfileDropdown = () => {
             🌍 Ülke Seç
           </div>
           
-          <DropdownMenuItem onClick={() => handleCountryChange("TR")}>
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCountryChange("TR").catch(err => console.error("Country change error:", err));
+          }}>
             🇹🇷 Türkiye (TRY) {country === "TR" ? "✓" : ""}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleCountryChange("SE")}>
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCountryChange("SE").catch(err => console.error("Country change error:", err));
+          }}>
             🇸🇪 İsveç (SEK) {country === "SE" ? "✓" : ""}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleCountryChange("DE")}>
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCountryChange("DE").catch(err => console.error("Country change error:", err));
+          }}>
             🇩🇪 Almanya (EUR) {country === "DE" ? "✓" : ""}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleCountryChange("GB")}>
+          <DropdownMenuItem onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCountryChange("GB").catch(err => console.error("Country change error:", err));
+          }}>
             🇬🇧 İngiltere (GBP) {country === "GB" ? "✓" : ""}
           </DropdownMenuItem>
           

@@ -346,33 +346,37 @@ export const ContractsSection = () => {
               {contracts.map((contract) => (
                 <div
                   key={contract.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="p-3 sm:p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{contract.title}</h3>
-                        <p className="text-sm text-muted-foreground">
+                  {/* Contract Info */}
+                  <div className="flex items-start gap-2 mb-3">
+                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm sm:text-base break-words mb-1">
+                        {contract.title}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm text-muted-foreground">
+                        {getStatusBadge(contract.status)}
+                        <span>
                           {contract.contractor_name && `${contract.contractor_name} • `}
                           {format(
                             new Date(contract.created_at),
                             "d MMMM yyyy",
                             { locale: i18n.language === 'tr' ? tr : undefined }
                           )}
-                        </p>
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                    {getStatusBadge(contract.status)}
-                    
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
-                          variant="ghost"
-                          size="icon"
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2"
                           onClick={() => {
                             setSelectedContract(contract.id);
                             setIsEditing(false);
@@ -380,28 +384,47 @@ export const ContractsSection = () => {
                           }}
                         >
                           <Eye className="h-4 w-4" />
+                          <span className="text-xs sm:text-sm">{t("contract.view") || "Görüntüle"}</span>
                         </Button>
                       </DialogTrigger>
                       <DialogContent 
-                        className="w-full max-w-[840px] h-[90vh] flex flex-col overflow-hidden mx-auto"
+                        className="w-[95vw] sm:max-w-[840px] h-[90vh] flex flex-col overflow-hidden p-0"
                         aria-describedby="contract-content-description"
                       >
-                        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <DialogTitle className="flex-1 truncate">{contract.title}</DialogTitle>
+                        <DialogHeader className="flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b">
+                          <div className="flex items-start justify-between gap-2">
+                            <DialogTitle className="flex-1 text-sm sm:text-base break-words pr-2">
+                              {contract.title}
+                            </DialogTitle>
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {!isEditing && isPremium && (
-                                <Button size="sm" variant="outline" onClick={() => handleEditStart(contract)} className="gap-2">
-                                  ✏️ {t("common.edit")}
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditStart(contract)} 
+                                  className="gap-1 text-xs sm:text-sm h-8 px-2 sm:px-3"
+                                >
+                                  ✏️ <span className="hidden sm:inline">{t("common.edit")}</span>
                                 </Button>
                               )}
                               {isEditing && (
                                 <>
-                                  <Button size="sm" variant="default" onClick={() => handleEditSave(contract.id)} disabled={isSaving} className="gap-2">
-                                    <Save className="h-4 w-4" />
-                                    {t("contract.save")}
+                                  <Button 
+                                    size="sm" 
+                                    variant="default" 
+                                    onClick={() => handleEditSave(contract.id)} 
+                                    disabled={isSaving} 
+                                    className="gap-1 text-xs h-8 px-2"
+                                  >
+                                    <Save className="h-3 w-3 sm:h-4 sm:w-4" />
                                   </Button>
-                                  <Button size="sm" variant="outline" onClick={handleEditCancel} disabled={isSaving}>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={handleEditCancel} 
+                                    disabled={isSaving}
+                                    className="text-xs h-8 px-2"
+                                  >
                                     {t("common.cancel")}
                                   </Button>
                                 </>
@@ -416,37 +439,39 @@ export const ContractsSection = () => {
                           <textarea
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="flex-1 px-6 py-4 border-0 bg-white dark:bg-slate-950 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-none"
+                            className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-0 bg-white dark:bg-slate-950 font-mono text-xs sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Sözleşme metnini düzenleyin..."
                           />
                         ) : (
                           <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
-                            <div className="px-6 py-4">
-                              <div className="prose prose-sm dark:prose-invert max-w-[760px] break-words whitespace-normal"
+                            <div className="px-4 sm:px-6 py-3 sm:py-4">
+                              <div 
+                                className="prose prose-xs sm:prose-sm dark:prose-invert max-w-full break-words"
                                 style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word' }}
-                                dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} />
+                                dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} 
+                              />
                             </div>
                           </div>
                         )}
                         {!isEditing && (
-                          <div className="flex justify-end gap-2 flex-shrink-0 px-6 py-4 border-t bg-white dark:bg-slate-950">
+                          <div className="flex flex-col sm:flex-row justify-end gap-2 flex-shrink-0 px-4 sm:px-6 py-3 border-t bg-muted/20">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDownloadPDF(contract)}
-                              className="gap-2"
+                              className="gap-2 w-full sm:w-auto justify-center"
                             >
                               <Download className="h-4 w-4" />
-                              {t("contract.pdfDownload")}
+                              <span className="text-xs sm:text-sm">{t("contract.pdfDownload")}</span>
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDownloadDoc(contract)}
-                              className="gap-2"
+                              className="gap-2 w-full sm:w-auto justify-center"
                             >
                               <Download className="h-4 w-4" />
-                              {t("contract.wordDownload")}
+                              <span className="text-xs sm:text-sm">{t("contract.wordDownload")}</span>
                             </Button>
                           </div>
                         )}
@@ -455,9 +480,9 @@ export const ContractsSection = () => {
 
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={() => handleDelete(contract.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive px-3 flex-shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -120,45 +120,56 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
       setState(prev => ({ ...prev, loading: true, error: null }));
       
       // JWT debug logging
-      const { data: currentSession } = await supabase.auth.getSession();
+      const { data: currentSession, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.warn("[SUBSCRIPTION] Auth session error:", sessionError);
+        setState(prev => ({ ...prev, loading: false, subscribed: false }));
+        return;
+      }
+      
       const token = currentSession?.session?.access_token;
-      console.log("[SUBSCRIPTION] Current JWT token:", token);
-      console.log("[SUBSCRIPTION] Token exists:", !!token);
-      if (token) {
-        console.log("[SUBSCRIPTION] Token length:", token.length);
-        console.log("[SUBSCRIPTION] Token starts with:", token.substring(0, 20) + "...");
+      if (!token) {
+        console.warn("[SUBSCRIPTION] No valid token available");
+        setState(prev => ({ ...prev, loading: false, subscribed: false }));
+        return;
       }
       
       console.log("[SUBSCRIPTION] About to invoke check-subscription...")
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
-      console.log("[SUBSCRIPTION] Response error:", error);
       if (error) {
-        console.log("[SUBSCRIPTION] Error name:", error.name);
-        console.log("[SUBSCRIPTION] Error message:", error.message);
-        console.log("[SUBSCRIPTION] Error context:", error.context);
+        console.warn("[SUBSCRIPTION] Edge function error:", error.message);
+        // Don't throw - gracefully handle subscription check failures
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          subscribed: false,
+        }));
+        return;
       }
+      
       console.log("[SUBSCRIPTION] Response data:", data);
 
-      if (error) throw error;
-
       setState({
-        subscribed: data.subscribed || false,
-        productId: data.product_id || null,
-        priceId: data.price_id || null,
-        subscriptionEnd: data.subscription_end || null,
+        subscribed: data?.subscribed || false,
+        productId: data?.product_id || null,
+        priceId: data?.price_id || null,
+        subscriptionEnd: data?.subscription_end || null,
         loading: false,
         error: null,
       });
     } catch (error) {
       console.error("Error checking subscription:", error);
+      // Gracefully fail - don't crash the app
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : "Abonelik kontrolü başarısız",
+        subscribed: false,
+        error: null, // Don't show error to user
       }));
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, user?.id]);
 
   const createCheckout = useCallback(async (priceId: string): Promise<string | null> => {
     if (!session?.access_token) {
@@ -166,22 +177,23 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
-      // JWT debug logging
-      const { data: currentSession } = await supabase.auth.getSession();
-      const token = currentSession?.session?.access_token;
-      console.log("[CHECKOUT] Current JWT token:", token);
-      console.log("[CHECKOUT] Token exists:", !!token);
-      if (token) {
-        console.log("[CHECKOUT] Token length:", token.length);
-        console.log("[CHECKOUT] Token starts with:", token.substring(0, 20) + "...");
+      // Validate session first
+      const { data: currentSession, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !currentSession?.session?.access_token) {
+        console.warn("[CHECKOUT] Invalid session");
+        return null;
       }
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
       });
 
-      if (error) throw error;
-      return data.url;
+      if (error) {
+        console.warn("[CHECKOUT] Error:", error.message);
+        return null;
+      }
+      return data?.url || null;
     } catch (error) {
       console.error("Error creating checkout:", error);
       return null;
@@ -194,20 +206,21 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
 
     try {
-      // JWT debug logging
-      const { data: currentSession } = await supabase.auth.getSession();
-      const token = currentSession?.session?.access_token;
-      console.log("[PORTAL] Current JWT token:", token);
-      console.log("[PORTAL] Token exists:", !!token);
-      if (token) {
-        console.log("[PORTAL] Token length:", token.length);
-        console.log("[PORTAL] Token starts with:", token.substring(0, 20) + "...");
+      // Validate session first
+      const { data: currentSession, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !currentSession?.session?.access_token) {
+        console.warn("[PORTAL] Invalid session");
+        return null;
       }
       
       const { data, error } = await supabase.functions.invoke('customer-portal');
 
-      if (error) throw error;
-      return data.url;
+      if (error) {
+        console.warn("[PORTAL] Error:", error.message);
+        return null;
+      }
+      return data?.url || null;
     } catch (error) {
       console.error("Error opening customer portal:", error);
       return null;
