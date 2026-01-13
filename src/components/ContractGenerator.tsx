@@ -579,7 +579,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
                       onClick={async () => {
                         const priceId = SUBSCRIPTION_TIERS.premium_monthly.price_id as string;
                         const url = await createCheckout?.(priceId);
-                        if (url) window.open(url, "_blank");
+                        if (url) window.location.href = url;
                       }}
                     >
                       {t("subscription.upgrade") || "Premium'a Yükselt"}

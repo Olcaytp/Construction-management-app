@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useProjects } from "@/hooks/useProjects";
@@ -8,6 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, Legend 
@@ -20,10 +28,13 @@ import autoTable from "jspdf-autotable";
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
 export const ReportsSection = () => {
+  const { projects } = useProjects();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    projects.length > 0 ? projects[0]?.id || null : null
+  );
   const { t } = useTranslation();
   const { isPremium, createCheckout } = useSubscription();
   const { isAdmin } = useAdmin();
-  const { projects } = useProjects();
   const { tasks } = useTasks();
   const { teamMembers } = useTeamMembers();
 
@@ -33,7 +44,8 @@ export const ReportsSection = () => {
   const handleUpgrade = async () => {
     const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
     if (url) {
-      window.open(url, "_blank");
+      // Open in same tab to preserve session
+      window.location.href = url;
     } else {
       toast.error(t('reports.checkoutError'));
     }
@@ -630,27 +642,86 @@ ${teamMembers.map(m => {
         <div className="grid gap-4 md:grid-cols-2">
           {hasPremiumAccess ? (
             <>
-              {/* Project Financial Analysis */}
+              {/* Project Financial Status - Single Project */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">{t('reports.projectFinancialAnalysis.title')}</CardTitle>
-                  <CardDescription>{t('reports.projectFinancialAnalysis.desc')}</CardDescription>
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <CardTitle className="text-lg">{t('reports.projectFinancialAnalysis.title')}</CardTitle>
+                      <CardDescription>{t('reports.projectFinancialAnalysis.desc')}</CardDescription>
+                    </div>
+                    <Select 
+                      value={selectedProjectId || (projects.length > 0 ? projects[0]?.id : "")}
+                      onValueChange={setSelectedProjectId}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Proje seçin..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={projectFinanceData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar name={t('reports.labels.budget')} dataKey="budget" fill="hsl(var(--chart-1))" />
-                        <Bar name={t('reports.labels.cost')} dataKey="cost" fill="hsl(var(--chart-4))" />
-                        <Bar name={t('reports.labels.revenue')} dataKey="revenue" fill="hsl(var(--chart-2))" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {projects.length > 0 ? (
+                    <div className="space-y-4">
+                      {(() => {
+                        const currentProjectId = selectedProjectId || projects[0]?.id;
+                        const currentProject = projects.find(p => p.id === currentProjectId);
+                        
+                        if (!currentProject) return null;
+                        
+                        return (
+                          <>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="bg-blue-50 p-3 rounded-lg">
+                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.budget')}</p>
+                                <p className="text-lg font-bold">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
+                              </div>
+                              <div className="bg-orange-50 p-3 rounded-lg">
+                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.cost')}</p>
+                                <p className="text-lg font-bold">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
+                              </div>
+                              <div className="bg-green-50 p-3 rounded-lg">
+                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.revenue')}</p>
+                                <p className="text-lg font-bold">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="border-t pt-4">
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-muted-foreground">Net Kâr</span>
+                                  <span className="font-semibold text-green-600">
+                                    ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString('tr-TR')}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-muted-foreground">Kâr Marjı</span>
+                                  <span className="font-semibold">
+                                    {currentProject.revenue && currentProject.revenue > 0
+                                      ? Math.round((((currentProject.revenue || 0) - (currentProject.actualCost || 0)) / (currentProject.revenue || 1)) * 100)
+                                      : 0}%
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-muted-foreground">Proje İlerleme</span>
+                                  <span className="font-semibold">{currentProject.progress}%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">{t('common.noData')}</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -684,56 +755,95 @@ ${teamMembers.map(m => {
                   <CardDescription>{t('reports.profitAnalysis.desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                      <span className="text-muted-foreground">{t('reports.profitAnalysis.totalRevenue')}</span>
-                      <span className="font-bold text-green-600">₺{totalRevenue.toLocaleString('tr-TR')}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                      <span className="text-muted-foreground">{t('reports.profitAnalysis.totalCost')}</span>
-                      <span className="font-bold text-orange-600">₺{totalCost.toLocaleString('tr-TR')}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                      <span className="font-medium">{t('reports.profitAnalysis.netProfit')}</span>
-                      <span className={`font-bold text-xl ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ₺{netProfit.toLocaleString('tr-TR')}
-                      </span>
-                    </div>
-                    <div className="mt-4">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{t('reports.profitAnalysis.profitMargin')}</span>
-                        <span>{totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%</span>
+                  {(() => {
+                    const currentProjectId = selectedProjectId || (projects.length > 0 ? projects[0]?.id : null);
+                    const currentProject = projects.find(p => p.id === currentProjectId);
+                    
+                    if (!currentProject) {
+                      return <div className="text-center py-6 text-muted-foreground">{t('common.noData')}</div>;
+                    }
+                    
+                    const projectRevenue = currentProject.revenue || 0;
+                    const projectCost = currentProject.actualCost || 0;
+                    const projectProfit = projectRevenue - projectCost;
+                    const projectMargin = projectRevenue > 0 ? Math.round((projectProfit / projectRevenue) * 100) : 0;
+                    
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                          <span className="text-muted-foreground">{t('reports.profitAnalysis.totalRevenue')}</span>
+                          <span className="font-bold text-green-600">₺{projectRevenue.toLocaleString('tr-TR')}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                          <span className="text-muted-foreground">{t('reports.profitAnalysis.totalCost')}</span>
+                          <span className="font-bold text-orange-600">₺{projectCost.toLocaleString('tr-TR')}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                          <span className="font-medium">{t('reports.profitAnalysis.netProfit')}</span>
+                          <span className={`font-bold text-xl ${projectProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ₺{projectProfit.toLocaleString('tr-TR')}
+                          </span>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>{t('reports.profitAnalysis.profitMargin')}</span>
+                            <span>{projectMargin}%</span>
+                          </div>
+                          <Progress 
+                            value={Math.max(0, projectMargin)} 
+                            className="h-2" 
+                          />
+                        </div>
                       </div>
-                      <Progress 
-                        value={totalRevenue > 0 ? Math.max(0, (netProfit / totalRevenue) * 100) : 0} 
-                        className="h-2" 
-                      />
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
 
-              {/* Project Progress Overview */}
+              {/* Project Progress Overview - Single Project */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">{t('reports.projectProgress.title')}</CardTitle>
                   <CardDescription>{t('reports.projectProgress.desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {projects.map(project => (
-                      <div key={project.id} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="truncate max-w-[200px]">{project.title}</span>
-                          <span className="font-medium">{project.progress}%</span>
+                  {(() => {
+                    const currentProjectId = selectedProjectId || (projects.length > 0 ? projects[0]?.id : null);
+                    const currentProject = projects.find(p => p.id === currentProjectId);
+                    
+                    if (!currentProject) {
+                      return <p className="text-muted-foreground text-center py-4">{t('reports.projectProgress.empty')}</p>;
+                    }
+                    
+                    return (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium">{currentProject.title}</span>
+                            <span className="font-bold">{currentProject.progress}%</span>
+                          </div>
+                          <Progress value={currentProject.progress} className="h-3" />
                         </div>
-                        <Progress value={project.progress} className="h-2" />
+                        
+                        <div className="border-t pt-4 space-y-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Durum:</span>
+                            <Badge variant={currentProject.status === 'active' ? 'default' : currentProject.status === 'completed' ? 'secondary' : 'outline'}>
+                              {currentProject.status === 'active' ? 'Aktif' : currentProject.status === 'completed' ? 'Tamamlandı' : 'Beklemede'}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Bütçe Kullanımı:</span>
+                            <span className="font-medium">
+                              {currentProject.budget && currentProject.budget > 0
+                                ? Math.round(((currentProject.actualCost || 0) / currentProject.budget) * 100)
+                                : 0}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                    {projects.length === 0 && (
-                      <p className="text-muted-foreground text-center py-4">{t('reports.projectProgress.empty')}</p>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </>

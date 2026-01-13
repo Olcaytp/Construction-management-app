@@ -47,6 +47,7 @@ const Index = () => {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedFinanceProjectId, setSelectedFinanceProjectId] = useState<string | null>(null);
 
   // Dil bilgisini buradan çekiyoruz:
     const currentLanguage = i18n.language; // 'tr', 'sv', 'en' gibi bir değer dönecektir.
@@ -774,93 +775,123 @@ const Index = () => {
 
             {/* Project Financial Details */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">{t('finance.projectFinancials')}</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h3 className="text-xl font-semibold text-foreground">{t('finance.projectFinancials')}</h3>
+                {projects.length > 0 && (
+                  <div className="w-full sm:w-64">
+                    <select
+                      value={selectedFinanceProjectId || (projects.length > 0 ? projects[0]?.id : "")}
+                      onChange={(e) => setSelectedFinanceProjectId(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground"
+                    >
+                      {projects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
                 <div className="grid gap-4">
-                    {projects.map(project => {
-                        const profit = (project.revenue || 0) - (project.actualCost || 0);
-                        const isProfitable = profit >= 0;
-                        
-                        return (
-                            <div key={project.id} className="p-4 bg-card border border-border rounded-lg">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-semibold text-foreground">{project.title}</h4>
-                                    <span className={`text-sm font-medium ${isProfitable ? 'text-green-600' : 'text-red-600'}`}>
-                                        {/* Kâr/Zarar: + veya - işaretini ve formatlamayı formatCurrency halledecek */}
-                                        {formatCurrency(profit)}
-                                    </span>
+                    {(() => {
+                      const currentProjectId = selectedFinanceProjectId || (projects.length > 0 ? projects[0]?.id : null);
+                      const projectToShow = projects.find(p => p.id === currentProjectId);
+                      
+                      if (!projectToShow) {
+                        return <p className="text-muted-foreground text-center py-4">{t('common.noData')}</p>;
+                      }
+
+                      const profit = (projectToShow.revenue || 0) - (projectToShow.actualCost || 0);
+                      const isProfitable = profit >= 0;
+                      
+                      return (
+                        <div className="p-4 bg-card border border-border rounded-lg">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="font-semibold text-foreground">{projectToShow.title}</h4>
+                                <span className={`text-sm font-medium ${isProfitable ? 'text-green-600' : 'text-red-600'}`}>
+                                    {formatCurrency(profit)}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-3">
+                                <div>
+                                <p className="text-xs text-muted-foreground">{t('project.budget')}</p>
+                                    <p className="font-semibold text-sm sm:text-base">{formatCurrency(projectToShow.budget || 0)}</p>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-3">
-                                    <div>
-                                    <p className="text-xs text-muted-foreground">{t('project.budget')}</p>
-                                        {/* Bütçe Değeri */}
-                                        <p className="font-semibold text-sm sm:text-base">{formatCurrency(project.budget || 0)}</p>
-                                    </div>
-                                    <div>
-                                    <p className="text-xs text-muted-foreground">{t('project.revenue')}</p>
-                                        {/* Gelir Değeri */}
-                                        <p className="font-semibold text-green-600 text-sm sm:text-base">{formatCurrency(project.revenue || 0)}</p>
-                                    </div>
-                                    <div>
-                                    <p className="text-xs text-muted-foreground">{t('project.actualCost')}</p>
-                                      {/* Maliyet Değeri */}
-                                      <p className="font-semibold text-orange-600 text-right text-sm sm:text-base">{formatCurrency(project.actualCost || 0)}</p>
-                                    </div>
+                                <div>
+                                <p className="text-xs text-muted-foreground">{t('project.revenue')}</p>
+                                    <p className="font-semibold text-green-600 text-sm sm:text-base">{formatCurrency(projectToShow.revenue || 0)}</p>
                                 </div>
-                                {/* ... Bütçe Kullanımı çubuğu ve yüzdesi (burada değişiklik yok) ... */}
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span className="text-muted-foreground">{t('finance.budgetUsage')}</span>
-                                        <span className="font-medium">
-                                            {project.budget > 0 ? Math.round(((project.actualCost || 0) / project.budget) * 100) : 0}%
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-muted rounded-full h-2">
-                                        <div 
-                                            className="bg-primary h-2 rounded-full transition-all"
-                                            style={{ 
-                                                width: `${Math.min(project.budget > 0 ? ((project.actualCost || 0) / project.budget) * 100 : 0, 100)}%` 
-                                            }}
-                                        />
-                                    </div>
+                                <div>
+                                <p className="text-xs text-muted-foreground">{t('project.actualCost')}</p>
+                                  <p className="font-semibold text-orange-600 text-right text-sm sm:text-base">{formatCurrency(projectToShow.actualCost || 0)}</p>
                                 </div>
                             </div>
-                        );
-                    })}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground">{t('finance.budgetUsage')}</span>
+                                    <span className="font-medium">
+                                        {projectToShow.budget > 0 ? Math.round(((projectToShow.actualCost || 0) / projectToShow.budget) * 100) : 0}%
+                                    </span>
+                                </div>
+                                <div className="w-full bg-muted rounded-full h-2">
+                                    <div 
+                                        className="bg-primary h-2 rounded-full transition-all"
+                                        style={{ 
+                                            width: `${Math.min(projectToShow.budget > 0 ? ((projectToShow.actualCost || 0) / projectToShow.budget) * 100 : 0, 100)}%` 
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                      );
+                    })()}
                 </div>
             </div>
 
             {/* Task Costs */}
             <div className="space-y-4">
-                {/* Başlık yerelleştirilmemiş görünüyor, t() fonksiyonu ile yerelleştirmeniz önerilir */}
                 <h3 className="text-xl font-semibold text-foreground">{t('finance.taskCosts')}</h3> 
                 <div className="bg-card border border-border rounded-lg p-4">
                     <div className="space-y-3">
-                        {tasks.map(task => (
+                        {(() => {
+                          const currentProjectId = selectedFinanceProjectId || (projects.length > 0 ? projects[0]?.id : null);
+                          const projectTasks = tasks.filter(task => task.projectId === currentProjectId);
+                          
+                          if (projectTasks.length === 0) {
+                            return <p className="text-muted-foreground text-center py-4">{t('common.noData')}</p>;
+                          }
+                          
+                          return projectTasks.map(task => (
                             <div key={task.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                                 <div className="flex-1">
                                     <p className="font-medium text-foreground">{task.title}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        {/* Proje Başlığı (Bu kısım finansal formatlama gerektirmiyor) */}
-                            {projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
+                                        {projects.find(p => p.id === task.projectId)?.title || t('common.noData')}
                                     </p>
                                 </div>
-                                {/* 1. Her Görev Maliyeti (task.estimatedCost) */}
                                 <span className="font-semibold text-foreground">
-                                    {/* Orijinal: {(task.estimatedCost || 0).toLocaleString('tr-TR')} ₺ */}
                                     {formatCurrency(task.estimatedCost || 0)}
                                 </span>
                             </div>
-                        ))}
-                        <div className="flex items-center justify-between pt-2 mt-2 border-t-2 border-border">
-                      <span className="font-bold text-foreground">{t('finance.totalEstimatedCost')}</span>
-                            {/* 2. Toplam Tahmini Maliyet */}
-                            <span className="font-bold text-lg text-foreground">
-                                {/* Orijinal: {tasks.reduce((sum, t) => sum + (t.estimatedCost || 0), 0).toLocaleString('tr-TR')} ₺ */}
-                                {formatCurrency(
-                                    tasks.reduce((sum, t) => sum + (t.estimatedCost || 0), 0)
-                                )}
-                            </span>
-                        </div>
+                          ));
+                        })()}
+                        {(() => {
+                          const currentProjectId = selectedFinanceProjectId || (projects.length > 0 ? projects[0]?.id : null);
+                          const projectTasks = tasks.filter(task => task.projectId === currentProjectId);
+                          const totalCost = projectTasks.reduce((sum, t) => sum + (t.estimatedCost || 0), 0);
+                          
+                          if (projectTasks.length > 0) {
+                            return (
+                              <div className="flex items-center justify-between pt-2 mt-2 border-t-2 border-border">
+                                <span className="font-bold text-foreground">{t('finance.totalEstimatedCost')}</span>
+                                <span className="font-bold text-lg text-foreground">
+                                  {formatCurrency(totalCost)}
+                                </span>
+                              </div>
+                            );
+                          }
+                        })()}
                     </div>
                 </div>
             </div>

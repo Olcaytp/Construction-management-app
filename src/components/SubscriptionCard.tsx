@@ -21,7 +21,8 @@ export const SubscriptionCard = () => {
   const handleSubscribe = async () => {
     const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
     if (url) {
-      window.open(url, "_blank");
+      // Open in same tab to preserve session
+      window.location.href = url;
     } else {
       toast.error("Ödeme sayfası açılamadı. Lütfen tekrar deneyin.");
     }
@@ -217,7 +218,8 @@ export const SubscriptionCard = () => {
                 if (priceId) {
                   createCheckout(priceId).then(url => {
                     if (url) {
-                      window.open(url, "_blank");
+                      // Open in same tab to preserve session
+                      window.location.href = url;
                     } else {
                       toast.error("Ödeme sayfası açılamadı. Lütfen tekrar deneyin.");
                     }

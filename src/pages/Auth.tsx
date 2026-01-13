@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2 } from "lucide-react";
+import { Building2, Mail } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
 const Auth = () => {
@@ -93,6 +94,27 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+
+    if (error) {
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Google Giriş Hatası",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
       <div className="absolute top-4 right-4">
@@ -142,6 +164,30 @@ const Auth = () => {
                   {loading ? t('auth.signingIn') : t('auth.signIn')}
                 </Button>
               </form>
+
+              <div className="mt-6 space-y-3">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      veya
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Gmail ile Giriş Yap
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="signup">
@@ -172,6 +218,30 @@ const Auth = () => {
                   {loading ? t('auth.signingUp') : t('auth.signUp')}
                 </Button>
               </form>
+
+              <div className="mt-6 space-y-3">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      veya
+                    </span>
+                  </div>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Gmail ile Kaydol
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

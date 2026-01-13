@@ -16,7 +16,8 @@ export const UpgradeAlert = ({ type, current, limit }: UpgradeAlertProps) => {
   const handleUpgrade = async () => {
     const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
     if (url) {
-      window.open(url, "_blank");
+      // Open in same tab to preserve session
+      window.location.href = url;
     } else {
       toast.error("Ödeme sayfası açılamadı. Lütfen tekrar deneyin.");
     }

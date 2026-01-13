@@ -251,7 +251,26 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     if (params.get('subscription') === 'success') {
       // Clear URL params and refresh subscription
       window.history.replaceState({}, '', window.location.pathname);
-      setTimeout(checkSubscription, 2000);
+      
+      // Ensure session is still valid before checking subscription
+      const handleSuccess = async () => {
+        try {
+          // Refresh session to ensure we have latest state
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+          if (refreshedSession) {
+            console.log("[SUBSCRIPTION] Session refreshed after checkout success");
+          }
+          
+          // Wait a bit for webhook to process
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log("[SUBSCRIPTION] Success detected, refreshing subscription status...");
+          checkSubscription();
+        } catch (error) {
+          console.error("[SUBSCRIPTION] Error handling success:", error);
+        }
+      };
+      
+      handleSuccess();
     }
   }, [checkSubscription]);
 
