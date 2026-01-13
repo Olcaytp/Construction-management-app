@@ -3,6 +3,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MaterialForm } from "@/components/MaterialForm";
 import { MaterialItem } from "@/components/MaterialItem";
 import { useMaterials, Material } from "@/hooks/useMaterials";
@@ -23,6 +32,7 @@ export const MaterialsSection = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [userCountry, setUserCountry] = useState("TR");
   const [userCurrency, setUserCurrency] = useState("TRY");
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const currencyMeta = useMemo(() => {
     const code = (userCurrency || "TRY").toUpperCase();
@@ -100,6 +110,17 @@ export const MaterialsSection = () => {
     });
     setEditingMaterial(null);
     setFormOpen(false);
+  };
+
+  const handleDeleteMaterial = (id: string) => {
+    setDeleteConfirm(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      deleteMaterial(deleteConfirm);
+      setDeleteConfirm(null);
+    }
   };
 
   const handleAISuggest = async () => {
@@ -441,11 +462,29 @@ tr:nth-child(even) {
                 setEditingMaterial(material);
                 setFormOpen(true);
               }}
-              onDelete={() => deleteMaterial(material.id)}
+              onDelete={() => handleDeleteMaterial(material.id)}
             />
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("common.confirm")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("common.deleteConfirm") || "Bu malzemeyi silmek istediğinizden emin misiniz?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              {t("common.delete")}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <MaterialForm
         open={formOpen}

@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 
 const getFormSchema = (t: any) => z.object({
   name: z.string().min(2, t("validation.customerNameRequired") || "Müşteri adı en az 2 karakter olmalı"),
-  phone: z.string().optional(),
+  phone: z.string().regex(/^\d*$/, "Telefon numarası sadece rakam içerebilir").optional().or(z.literal("")),
   address: z.string().optional(),
   notes: z.string().optional(),
   totalReceivable: z.coerce.number().min(0).default(0),

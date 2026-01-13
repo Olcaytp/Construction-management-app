@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 
 const getFormSchema = (t: any) => z.object({
   name: z.string().min(2, t("validation.nameRequired") || "Ad en az 2 karakter olmalı"),
-  phone: z.string().min(10, t("validation.phoneRequired") || "Telefon en az 10 karakter olmalı"),
+  phone: z.string().regex(/^\d+$/, "Telefon numarası sadece rakam içerebilir").min(10, t("validation.phoneRequired") || "Telefon en az 10 karakter olmalı"),
   specialty: z.string().min(2, t("validation.specialtyRequired") || "Uzmanlık en az 2 karakter olmalı"),
   dailyWage: z.coerce.number().min(0).default(0),
   totalReceivable: z.coerce.number().min(0).default(0),

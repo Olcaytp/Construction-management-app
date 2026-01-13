@@ -47,9 +47,10 @@ export const useCustomers = () => {
 
       // Check subscription limits
       const currentLimit = isPremium ? PLAN_LIMITS.premium.maxCustomers : PLAN_LIMITS.free.maxCustomers;
-      const { count } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+      const { count, error: countError } = await supabase.from("customers").select("*", { count: "exact", head: true }).eq("user_id", user.id);
       
-      if (count !== null && count >= currentLimit) {
+      if (countError) throw countError;
+      if ((count || 0) >= currentLimit) {
         throw new Error(`Müşteri limiti aşıldı. ${isPremium ? "Premium" : "Ücretsiz"} planda maksimum ${currentLimit} müşteri ekleyebilirsiniz.`);
       }
 

@@ -6,15 +6,17 @@ import { supabase } from "@/integrations/supabase/client";
 // Plan limitleri
 export const PLAN_LIMITS = {
   free: {
-    maxProjects: 5,
-    maxCustomers: 5,
-    maxTeamMembers: 5,
+    maxProjects: 2,
+    maxCustomers: 2,
+    maxTeamMembers: 2,
+    maxTasksPerProject: 3,
     maxPhotosPerProject: 2,
   },
   premium: {
     maxProjects: Infinity,
     maxCustomers: Infinity,
     maxTeamMembers: Infinity,
+    maxTasksPerProject: Infinity,
     maxPhotosPerProject: 5,
   },
 } as const;
@@ -27,9 +29,10 @@ export const SUBSCRIPTION_TIERS = {
     price: 0,
     currency: "TRY",
     features: [
-      "5 proje",
-      "5 müşteri",
-      "5 ekip üyesi",
+      "2 proje",
+      "2 müşteri",
+      "2 ekip üyesi",
+      "3 görev/proje",
       "2 fotoğraf/proje",
       "Temel raporlama",
       "Basit AI sözleşme ve malzeme önerileri",
@@ -47,6 +50,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız proje",
       "Sınırsız müşteri",
       "Sınırsız ekip üyesi",
+      "Sınırsız görev",
       "5 fotoğraf/proje",
       "Gelişmiş raporlama",
       "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",
@@ -66,6 +70,7 @@ export const SUBSCRIPTION_TIERS = {
       "Sınırsız proje",
       "Sınırsız müşteri",
       "Sınırsız ekip üyesi",
+      "Sınırsız görev",
       "5 fotoğraf/proje",
       "Gelişmiş raporlama",
       "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",

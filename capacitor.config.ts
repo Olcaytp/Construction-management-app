@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.lovable.insaattakip',
+  appId: 'com.constructionmanagement.app',
   appName: 'Insaat Takip',
   webDir: 'dist',
   plugins: {

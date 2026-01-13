@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatsCard } from "@/components/StatsCard";
 import { ProjectCard } from "@/components/ProjectCard";
 import { TaskItem } from "@/components/TaskItem";
@@ -100,6 +109,7 @@ const Index = () => {
   const currentLimits = hasPremiumAccess ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
   const canAddProject = projects.length < currentLimits.maxProjects;
   const canAddTeamMember = teamMembers.length < currentLimits.maxTeamMembers;
+  const canAddCustomer = customers.length < currentLimits.maxCustomers;
   
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
@@ -110,6 +120,9 @@ const Index = () => {
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editingTeamMember, setEditingTeamMember] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+
+  // Delete confirmation states
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: string } | null>(null);
 
   const handleStatusChange = (taskId: string, newStatus: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -131,7 +144,39 @@ const Index = () => {
   };
 
   const handleDeleteTeamMember = (id: string) => {
-    deleteTeamMember(id);
+    setDeleteConfirm({ type: "teamMember", id });
+  };
+
+  const handleDeleteCustomer = (id: string) => {
+    setDeleteConfirm({ type: "customer", id });
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setDeleteConfirm({ type: "project", id });
+  };
+
+  const handleDeleteTask = (id: string) => {
+    setDeleteConfirm({ type: "task", id });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    
+    switch (deleteConfirm.type) {
+      case "teamMember":
+        deleteTeamMember(deleteConfirm.id);
+        break;
+      case "customer":
+        deleteCustomer(deleteConfirm.id);
+        break;
+      case "project":
+        deleteProject(deleteConfirm.id);
+        break;
+      case "task":
+        deleteTask(deleteConfirm.id);
+        break;
+    }
+    setDeleteConfirm(null);
   };
 
   const handleAddCustomer = (data: any) => {
@@ -144,10 +189,6 @@ const Index = () => {
     updateCustomer({ id: editingCustomer.id, ...data });
     setEditingCustomer(null);
     setCustomerFormOpen(false);
-  };
-
-  const handleDeleteCustomer = (id: string) => {
-    deleteCustomer(id);
   };
 
   const handleAddProject = (data: any) => {
@@ -191,10 +232,6 @@ const Index = () => {
     setProjectFormOpen(false);
   };
 
-  const handleDeleteProject = (id: string) => {
-    deleteProject(id);
-  };
-
   const handleAddTask = (data: any) => {
     const taskData = {
       title: data.title,
@@ -228,10 +265,6 @@ const Index = () => {
     setTaskFormOpen(false);
   };
 
-  const handleDeleteTask = (id: string) => {
-    deleteTask(id);
-  };
-
   if (projectsLoading || tasksLoading || membersLoading || customersLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -248,6 +281,25 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <OnboardingModal open={showOnboarding} onComplete={() => setShowOnboarding(false)} />
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Silmek istediğinize emin misiniz?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              {t("common.delete")}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4">
@@ -581,6 +633,16 @@ const Index = () => {
                 {t('task.add')}
               </Button>
             </div>
+            {projects.length > 0 && tasks.length > 0 && projects.some(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) && !hasPremiumAccess && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                <div className="font-medium mb-2">⚠️ Görev limitine ulaşan projeler:</div>
+                <ul className="list-disc list-inside space-y-1">
+                  {projects.filter(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject).map(p => (
+                    <li key={p.id}>{p.title} ({tasks.filter(t => t.projectId === p.id).length}/{currentLimits.maxTasksPerProject})</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="space-y-2 sm:space-y-3">
               {tasks.map(task => {
                 const assigneeName = teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo || t('common.noData');
@@ -888,14 +950,25 @@ const Index = () => {
           <TabsContent value="customers" className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t('app.customers')}</h2>
-              <Button onClick={() => {
-                setEditingCustomer(null);
-                setCustomerFormOpen(true);
-              }} className="gap-2 w-full sm:w-auto">
+              <Button 
+                onClick={() => {
+                  setEditingCustomer(null);
+                  setCustomerFormOpen(true);
+                }} 
+                className="gap-2 w-full sm:w-auto"
+                disabled={!canAddCustomer && !hasPremiumAccess}
+              >
                 <Plus className="h-4 w-4" />
                 {t('customer.add')}
               </Button>
             </div>
+            {!canAddCustomer && !hasPremiumAccess && (
+              <UpgradeAlert 
+                type="customers" 
+                current={customers.length} 
+                limit={currentLimits.maxCustomers} 
+              />
+            )}
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {customers.map(customer => {
                 const projectCount = projects.filter(p => p.customerId === customer.id).length;

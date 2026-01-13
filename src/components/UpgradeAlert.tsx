@@ -5,7 +5,7 @@ import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
 interface UpgradeAlertProps {
-  type: "projects" | "teamMembers";
+  type: "projects" | "teamMembers" | "customers";
   current: number;
   limit: number;
 }
@@ -30,6 +30,10 @@ export const UpgradeAlert = ({ type, current, limit }: UpgradeAlertProps) => {
     teamMembers: {
       title: "Ekip Üyesi Limitine Ulaştınız",
       description: `Standard planda maksimum ${limit} ekip üyesi ekleyebilirsiniz. Şu anda ${current}/${limit} ekip üyesi kullanıyorsunuz.`,
+    },
+    customers: {
+      title: "Müşteri Limitine Ulaştınız",
+      description: `Standard planda maksimum ${limit} müşteri ekleyebilirsiniz. Şu anda ${current}/${limit} müşteri kullanıyorsunuz.`,
     },
   };
 

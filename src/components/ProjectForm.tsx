@@ -42,22 +42,30 @@ const numberRequired = (min = 0, max?: number) =>
       : z.coerce.number({ invalid_type_error: "Gerekli" }).min(min)
   );
 
-const getFormSchema = (t: any) => z.object({
-  title: z.string().min(2, t("validation.titleRequired") || "Proje adı en az 2 karakter olmalı"),
-  description: z.string().optional(),
-  startDate: z.string().default(new Date().toISOString().split('T')[0]),
-  endDate: z.string().optional(),
-  assignedTeam: z.array(z.string()),
-  customerId: z.string().optional(),
-  status: z.enum(["planning", "active", "completed"]),
-  progress: z.coerce.number().min(0).max(100).default(0),
-  budget: z.coerce.number().min(0).default(0),
-  actualCost: z.coerce.number().min(0).default(0),
-  revenue: z.coerce.number().min(0).default(0),
-  photos: z.array(z.string()).optional(),
-});
+const getFormSchema = (t: any) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return z.object({
+    title: z.string().min(2, t("validation.titleRequired") || "Proje adı en az 2 karakter olmalı"),
+    description: z.string().optional(),
+    startDate: z.string()
+      .default(today)
+      .refine((date) => date >= today, "Başlangıç tarihi bugünün tarihinden eski olamaz"),
+    endDate: z.string()
+      .optional()
+      .refine((date) => !date || date >= today, "Bitiş tarihi bugünün tarihinden eski olamaz"),
+    assignedTeam: z.array(z.string()),
+    customerId: z.string().optional(),
+    status: z.enum(["planning", "active", "completed"]),
+    progress: z.coerce.number().min(0).max(100).default(0),
+    budget: z.coerce.number().min(0).default(0),
+    actualCost: z.coerce.number().min(0).default(0),
+    revenue: z.coerce.number().min(0).default(0),
+    photos: z.array(z.string()).optional(),
+  });
+};
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface TeamMember {
   id: string;

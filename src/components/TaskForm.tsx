@@ -29,17 +29,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const getFormSchema = (t: any) => z.object({
-  title: z.string().min(2, t("validation.taskTitleRequired") || "Görev adı en az 2 karakter olmalı"),
-  project: z.string().min(1, t("validation.required") || "Lütfen proje seçin"),
-  assignee: z.string().min(1, t("validation.required") || "Lütfen sorumlu seçin"),
-  dueDate: z.string().min(1, t("validation.required") || "Lütfen tarih seçin"),
-  status: z.enum(["pending", "in-progress", "completed"]),
-  priority: z.enum(["low", "medium", "high"]),
-  estimatedCost: z.coerce.number().min(0).default(0),
-});
+const getFormSchema = (t: any) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return z.object({
+    title: z.string().min(2, t("validation.taskTitleRequired") || "Görev adı en az 2 karakter olmalı"),
+    project: z.string().min(1, t("validation.required") || "Lütfen proje seçin"),
+    assignee: z.string().min(1, t("validation.required") || "Lütfen sorumlu seçin"),
+    dueDate: z.string()
+      .min(1, t("validation.required") || "Lütfen tarih seçin")
+      .refine((date) => date >= today, "Bitiş tarihi bugünün tarihinden eski olamaz"),
+    status: z.enum(["pending", "in-progress", "completed"]),
+    priority: z.enum(["low", "medium", "high"]),
+    estimatedCost: z.coerce.number().min(0, "Tahmini maliyet 0 veya daha büyük olmalı").default(0),
+  });
+};
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<ReturnType<typeof getFormSchema>>;
 
 interface TaskFormProps {
   open: boolean;
