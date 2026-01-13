@@ -250,7 +250,10 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     }
   }, [checkSubscription]);
 
-  const isPremium = state.subscribed && state.productId === SUBSCRIPTION_TIERS.premium_monthly.product_id;
+  const isPremium = state.subscribed && [
+    SUBSCRIPTION_TIERS.premium_monthly.product_id,
+    SUBSCRIPTION_TIERS.premium_yearly.product_id,
+  ].includes(state.productId as string);
 
   return (
     <SubscriptionContext.Provider
