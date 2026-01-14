@@ -37,11 +37,18 @@ const getFormSchema = (t: any) => {
     project: z.string().min(1, t("validation.required") || "Lütfen proje seçin"),
     assignee: z.string().min(1, t("validation.required") || "Lütfen sorumlu seçin"),
     dueDate: z.string()
-      .min(1, t("validation.required") || "Lütfen tarih seçin")
-      .refine((date) => date >= today, "Bitiş tarihi bugünün tarihinden eski olamaz"),
+      .min(1, t("validation.required") || "Lütfen tarih seçin"),
     status: z.enum(["pending", "in-progress", "completed"]),
     priority: z.enum(["low", "medium", "high"]),
     estimatedCost: z.coerce.number().min(0, "Tahmini maliyet 0 veya daha büyük olmalı").default(0),
+  }).refine((data) => {
+    // Status completed ise tarih kısıtlaması yoktur
+    if (data.status === "completed") return true;
+    // Diğer durumlar için dueDate bugünden eski olamaz
+    return data.dueDate >= today;
+  }, {
+    message: "Bitiş tarihi bugünün tarihinden eski olamaz",
+    path: ["dueDate"]
   });
 };
 
@@ -77,9 +84,11 @@ export const TaskForm = ({
       dueDate: "",
       status: "pending",
       priority: "medium",
-      estimatedCost: 0,
+      estimatedCost: "",
     },
   });
+
+  const selectedStatus = form.watch("status");
 
   useEffect(() => {
     if (defaultValues) {
@@ -92,7 +101,7 @@ export const TaskForm = ({
         dueDate: "",
         status: "pending",
         priority: "medium",
-        estimatedCost: 0,
+        estimatedCost: "",
       });
     }
   }, [defaultValues, form]);
@@ -179,7 +188,12 @@ export const TaskForm = ({
                 <FormItem>
                   <FormLabel>{t('task.dueDate')}</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      key={`dueDate-${selectedStatus}`}
+                      {...field}
+                      min={selectedStatus === "completed" ? "" : new Date().toISOString().split('T')[0]}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

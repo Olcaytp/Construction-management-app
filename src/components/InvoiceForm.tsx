@@ -158,14 +158,14 @@ export const InvoiceForm = ({
           {t("invoice.form.addButton")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background z-10">
           <DialogTitle>{t("invoice.form.title")}</DialogTitle>
           <DialogDescription>{t("invoice.form.description")}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 px-0">
             {/* Project Selection */}
             <FormField
               control={form.control}
@@ -244,7 +244,7 @@ export const InvoiceForm = ({
                           {getWorkTypeLabel(type.value)}
                         </SelectItem>
                       ))}
-                      <SelectItem value="custom">+ Özel İş Türü Ekle</SelectItem>
+                      <SelectItem value="custom">+ {t("invoice.form.customWorkType")}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -254,7 +254,7 @@ export const InvoiceForm = ({
 
             {/* Custom Work Type Input */}
             {isCustomWorkType && (
-              <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-muted">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border border-muted">
                 <FormField
                   control={form.control}
                   name="custom_work_type"
@@ -285,7 +285,7 @@ export const InvoiceForm = ({
             )}
 
             {/* Quantity and Unit */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="quantity"
@@ -338,7 +338,7 @@ export const InvoiceForm = ({
             />
 
             {/* Actions */}
-            <div className="flex gap-2 justify-end pt-4">
+            <div className="flex gap-2 justify-end pt-4 sticky bottom-0 bg-background border-t">
               <Button type="button" variant="outline" onClick={() => {
                 form.reset();
                 setIsOpen(false);

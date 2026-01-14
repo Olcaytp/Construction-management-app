@@ -44,7 +44,7 @@ export const ProjectCard = ({
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-300 cursor-pointer border-border hover:border-primary/50" 
+      className="hover:shadow-lg transition-all duration-300 cursor-pointer border-border hover:border-primary/50 flex flex-col" 
       onClick={onClick}
     >
       <CardHeader className="pb-3 pr-12 sm:pr-3">
@@ -53,7 +53,7 @@ export const ProjectCard = ({
           <Badge className={`${statusColors[status]} w-fit`}>{statusLabels[status]}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1">
         {photos.length > 0 && (
           <div className="w-full flex gap-2 overflow-x-auto pb-2">
             {photos.slice(0, 3).map((photo, index) => (
@@ -104,7 +104,7 @@ export const ProjectCard = ({
           <Progress value={progress} className="h-2" />
         </div>
       </CardContent>
-      {footer && <CardFooter className="flex gap-1 sm:gap-2 border-t border-border pt-3">{footer}</CardFooter>}
+      <CardFooter className="flex gap-1 sm:gap-2 border-t border-border pt-3">{footer}</CardFooter>
     </Card>
   );
 };

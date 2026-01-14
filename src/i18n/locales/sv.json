@@ -337,6 +337,7 @@
       "noTeamMembers": "Inga teammedlemmar tillagda",
       "workType": "Arbetstyp",
       "workTypePlaceholder": "Välj arbetstyp",
+      "customWorkType": "+ Lägg till egen arbetstyp",
       "quantity": "Mängd",
       "unitPrice": "Enhetspris ({{symbol}})",
       "total": "Totalsumma",
@@ -475,7 +476,8 @@
       "deleted": "Tidrapport raderad",
       "error": "Tidrapportfel",
       "noUser": "Användare hittades inte"
-    }
+    },
+    "confirmDelete": "Är du säker på att du vill radera denna tidsrapport? Det går inte att ångra."
   },
   "validation": {
     "required": "Det här fältet är obligatoriskt",
@@ -496,7 +498,8 @@
     "noData": "Ingen data tillgänglig",
     "error": "Fel",
     "saved": "Sparad",
-    "loading": "Laddar..."
+    "loading": "Laddar...",
+    "confirmDelete": "Bekräfta radering"
   },
   "admin": {
     "title": "Adminpanel",

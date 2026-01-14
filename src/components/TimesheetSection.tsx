@@ -4,6 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TimesheetForm } from "@/components/TimesheetForm";
 import { useTimesheets } from "@/hooks/useTimesheets";
 import type { CreateTimesheetInput, TimesheetEntry, UpdateTimesheetInput } from "@/hooks/useTimesheets";
@@ -27,6 +36,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   const [userCountry, setUserCountry] = useState<string>("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -90,6 +100,13 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
       setEditing(null);
     } else {
       createTimesheet(payload as CreateTimesheetInput);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirm) {
+      deleteTimesheet(deleteConfirm);
+      setDeleteConfirm(null);
     }
   };
 
@@ -252,7 +269,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteTimesheet(entry.id)}>
+                            <Button variant="ghost" size="icon" onClick={() => setDeleteConfirm(entry.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </TableCell>
@@ -343,7 +360,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
                               variant="outline"
                               size="sm"
                               className="flex-1 text-destructive hover:text-destructive"
-                              onClick={() => deleteTimesheet(entry.id)}
+                              onClick={() => setDeleteConfirm(entry.id)}
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
                               {t("common.delete") || "Sil"}
@@ -371,6 +388,23 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
         teamMembers={teamMembers}
         defaultValues={editing}
       />
+
+      <AlertDialog open={deleteConfirm !== null} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("common.confirmDelete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("timesheet.confirmDelete")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 justify-end">
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+              {t("common.delete")}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

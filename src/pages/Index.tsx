@@ -77,6 +77,11 @@ const Index = () => {
   const { isPremium } = useSubscription();
   const { isAdmin } = useAdmin();
 
+  // Scroll to top on component mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
   // Show onboarding if user hasn't filled in profile yet
   useEffect(() => {
     if (user && !user.user_metadata?.full_name) {

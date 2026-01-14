@@ -49,11 +49,9 @@ const getFormSchema = (t: any) => {
     title: z.string().min(2, t("validation.titleRequired") || "Proje adı en az 2 karakter olmalı"),
     description: z.string().optional(),
     startDate: z.string()
-      .default(today)
-      .refine((date) => date >= today, "Başlangıç tarihi bugünün tarihinden eski olamaz"),
+      .default(today),
     endDate: z.string()
-      .optional()
-      .refine((date) => !date || date >= today, "Bitiş tarihi bugünün tarihinden eski olamaz"),
+      .optional(),
     assignedTeam: z.array(z.string()),
     customerId: z.string().optional(),
     status: z.enum(["planning", "active", "completed"]),
@@ -62,6 +60,22 @@ const getFormSchema = (t: any) => {
     actualCost: z.coerce.number().min(0).default(0),
     revenue: z.coerce.number().min(0).default(0),
     photos: z.array(z.string()).optional(),
+  }).refine((data) => {
+    // Status completed ise tarih kısıtlaması yoktur
+    if (data.status === "completed") return true;
+    // Diğer durumlar için startDate bugünden eski olamaz
+    return data.startDate >= today;
+  }, {
+    message: "Başlangıç tarihi bugünün tarihinden eski olamaz",
+    path: ["startDate"]
+  }).refine((data) => {
+    // Status completed ise tarih kısıtlaması yoktur
+    if (data.status === "completed") return true;
+    // Diğer durumlar için endDate bugünden eski olamaz
+    return !data.endDate || data.endDate >= today;
+  }, {
+    message: "Bitiş tarihi bugünün tarihinden eski olamaz",
+    path: ["endDate"]
   });
 };
 
@@ -132,13 +146,15 @@ export const ProjectForm = ({
       assignedTeam: [],
       customerId: "",
       status: "planning",
-      progress: 0,
-      budget: 0,
-      actualCost: 0,
-      revenue: 0,
+      progress: "",
+      budget: "",
+      actualCost: "",
+      revenue: "",
       photos: [],
     },
   });
+
+  const selectedStatus = form.watch("status");
 
   const lastResetKeyRef = useRef<string | null>(null);
 
@@ -174,10 +190,10 @@ export const ProjectForm = ({
       assignedTeam: [],
       customerId: "",
       status: "planning",
-      progress: 0,
-      budget: 0,
-      actualCost: 0,
-      revenue: 0,
+      progress: "",
+      budget: "",
+      actualCost: "",
+      revenue: "",
       photos: [],
     });
     setPhotoUrls([]);
@@ -364,7 +380,12 @@ export const ProjectForm = ({
                   <FormItem>
                     <FormLabel>{t("project.startDate")}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        key={`startDate-${selectedStatus}`}
+                        {...field}
+                        min={selectedStatus === "completed" ? "" : new Date().toISOString().split('T')[0]}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

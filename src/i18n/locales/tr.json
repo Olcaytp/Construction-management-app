@@ -337,6 +337,7 @@
       "noTeamMembers": "Ekip üyesi eklenmemiş",
       "workType": "İşin Türü",
       "workTypePlaceholder": "İşin türünü seçin",
+      "customWorkType": "+ Özel İş Türü Ekle",
       "quantity": "Miktar",
       "unitPrice": "Birim Fiyat ({{symbol}})",
       "total": "Toplam Tutar",
@@ -475,7 +476,8 @@
       "deleted": "Puantaj silindi",
       "error": "Puantaj hatası",
       "noUser": "Kullanıcı bulunamadı"
-    }
+    },
+    "confirmDelete": "Bu zaman kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "validation": {
     "required": "Bu alan gereklidir",
@@ -496,7 +498,8 @@
     "noData": "Veri bulunamadı",
     "error": "Hata",
     "saved": "Kaydedildi",
-    "loading": "Yükleniyor..."
+    "loading": "Yükleniyor...",
+    "confirmDelete": "Silmeyi Onayla"
   },
   "admin": {
     "title": "Yönetici Paneli",

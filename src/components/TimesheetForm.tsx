@@ -164,14 +164,14 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 bg-background z-10">
           <DialogTitle>{t("timesheet.form.title")}</DialogTitle>
           <DialogDescription>{t("timesheet.form.subtitle")}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 px-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -405,7 +405,7 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 sticky bottom-0 bg-background border-t">
               <Button
                 type="button"
                 variant="outline"
