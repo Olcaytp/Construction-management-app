@@ -7,10 +7,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.constructionmanagement.app"
+    namespace "app.lovable.constructionmanagement"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.constructionmanagement.app"
+        applicationId "app.lovable.constructionmanagement"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
