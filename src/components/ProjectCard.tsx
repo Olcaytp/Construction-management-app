@@ -53,7 +53,7 @@ export const ProjectCard = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {photos.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="w-full flex gap-2 overflow-x-auto pb-2">
             {photos.slice(0, 3).map((photo, index) => (
               <img 
                 key={index} 

@@ -298,8 +298,8 @@ export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
               {t('invoice.empty')}
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-6 sm:mx-0">
-              <Table>
+            <div className="w-full overflow-x-auto">
+              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.project')}</TableHead>

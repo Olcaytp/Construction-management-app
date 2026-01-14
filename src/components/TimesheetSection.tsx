@@ -8,7 +8,7 @@ import { TimesheetForm } from "@/components/TimesheetForm";
 import { useTimesheets } from "@/hooks/useTimesheets";
 import type { CreateTimesheetInput, TimesheetEntry, UpdateTimesheetInput } from "@/hooks/useTimesheets";
 import type { TeamMember } from "@/hooks/useTeamMembers";
-import { Plus, Trash2, Clock, CalendarDays, DollarSign, Pencil } from "lucide-react";
+import { Plus, Trash2, Clock, CalendarDays, DollarSign, Pencil, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +25,8 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   const [editing, setEditing] = useState<TimesheetEntry | null>(null);
   const [userCurrency, setUserCurrency] = useState<string>("");
   const [userCountry, setUserCountry] = useState<string>("");
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -43,6 +45,13 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
     teamMembers.forEach((m) => { map[m.id] = m; });
     return map;
   }, [teamMembers]);
+
+  const memberTimesheets = useMemo(() => {
+    if (!selectedMemberId) return timesheets;
+    return timesheets.filter(ts => ts.team_member_id === selectedMemberId);
+  }, [timesheets, selectedMemberId]);
+
+  const selectedMember = selectedMemberId ? memberMap[selectedMemberId] : null;
 
   const currencyInfo = useMemo(() => {
     // Use profile currency first, fallback to language
@@ -63,7 +72,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   };
 
   const totals = useMemo(() => {
-    return timesheets.reduce(
+    return memberTimesheets.reduce(
       (acc, entry) => {
         acc.hours += entry.hours_worked;
         acc.overtime += entry.overtime_hours;
@@ -73,7 +82,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
       },
       { hours: 0, overtime: 0, leave: 0, payable: 0 }
     );
-  }, [timesheets]);
+  }, [memberTimesheets]);
 
   const handleSubmit = (payload: CreateTimesheetInput | UpdateTimesheetInput) => {
     if (editing) {
@@ -130,53 +139,149 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CalendarDays className="h-4 w-4" />
-            <span>{t("timesheet.tableTitle")}</span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-6 text-muted-foreground">{t("common.loading")}</div>
-          ) : timesheets.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">{t("timesheet.empty")}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("timesheet.table.member")}</TableHead>
-                    <TableHead>{t("timesheet.table.date")}</TableHead>
-                    <TableHead>{t("timesheet.table.hours")}</TableHead>
-                    <TableHead>{t("timesheet.table.overtime")}</TableHead>
-                    <TableHead>{t("timesheet.table.leave")}</TableHead>
-                    <TableHead>{t("timesheet.table.payable")}</TableHead>
-                    <TableHead>{t("timesheet.table.status")}</TableHead>
-                    <TableHead className="w-[80px]">{t("timesheet.table.actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {timesheets.map((entry) => {
-                    const member = memberMap[entry.team_member_id];
-                    return (
-                      <TableRow key={entry.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <div>{member?.name || t("common.noData")}</div>
-                              <div className="text-xs text-muted-foreground">{member?.specialty}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Team Members Dropdown */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-lg">{t("app.team")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {teamMembers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {t("team.noTeamMembers") || "Ekip üyesi eklenmemiş"}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <select
+                  value={selectedMemberId || ""}
+                  onChange={(e) => setSelectedMemberId(e.target.value || null)}
+                  className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Ekip üyesi seçin</option>
+                  {teamMembers.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name} ({member.specialty})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Timesheet Records */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarDays className="h-4 w-4" />
+              <span>{t("timesheet.tableTitle")}</span>
+            </div>
+            {selectedMember && (
+              <div className="text-lg font-semibold text-foreground">{selectedMember.name}</div>
+            )}
+          </CardHeader>
+          <CardContent>
+            {!selectedMemberId ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>{t("timesheet.selectMemberFirst") || "Puantaj kayıtlarını görmek için sol taraftan ekip üyesi seçin"}</p>
+              </div>
+            ) : isLoading ? (
+              <div className="text-center py-6 text-muted-foreground">{t("common.loading")}</div>
+            ) : memberTimesheets.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                {t("timesheet.empty") || "Bu kişinin puantaj kaydı bulunamadı"}
+              </div>
+            ) : (
+            <div className="space-y-3">
+              {/* Desktop View - Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("timesheet.table.member")}</TableHead>
+                      <TableHead>{t("timesheet.table.date")}</TableHead>
+                      <TableHead>{t("timesheet.table.hours")}</TableHead>
+                      <TableHead>{t("timesheet.table.overtime")}</TableHead>
+                      <TableHead>{t("timesheet.table.leave")}</TableHead>
+                      <TableHead>{t("timesheet.table.payable")}</TableHead>
+                      <TableHead>{t("timesheet.table.status")}</TableHead>
+                      <TableHead className="w-[80px]">{t("timesheet.table.actions")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {memberTimesheets.map((entry) => {
+                      const member = memberMap[entry.team_member_id];
+                      return (
+                        <TableRow key={entry.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div>{member?.name || t("common.noData")}</div>
+                                <div className="text-xs text-muted-foreground">{member?.specialty}</div>
+                              </div>
                             </div>
+                          </TableCell>
+                          <TableCell>{format(new Date(entry.work_date), "yyyy-MM-dd")}</TableCell>
+                          <TableCell>{entry.hours_worked.toLocaleString(i18n.language)}</TableCell>
+                          <TableCell>{entry.overtime_hours.toLocaleString(i18n.language)}</TableCell>
+                          <TableCell>{entry.leave_hours.toLocaleString(i18n.language)} {entry.leave_type ? `(${entry.leave_type})` : ""}</TableCell>
+                          <TableCell className="font-semibold text-green-600">{formatMoney(entry.payable_amount)}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                entry.status === "approved"
+                                  ? "default"
+                                  : entry.status === "paid"
+                                  ? "outline"
+                                  : "secondary"
+                              }
+                            >
+                              {t(`timesheet.status.${entry.status}`)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditing(entry);
+                                setFormOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteTimesheet(entry.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View - Expandable Cards */}
+              <div className="md:hidden space-y-2">
+                {memberTimesheets.map((entry) => {
+                  const member = memberMap[entry.team_member_id];
+                  const isExpanded = expandedMemberId === entry.id;
+                  return (
+                    <div key={entry.id} className="border border-border rounded-lg overflow-hidden bg-card">
+                      <button
+                        onClick={() => setExpandedMemberId(isExpanded ? null : entry.id)}
+                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                          <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{format(new Date(entry.work_date), "yyyy-MM-dd")}</div>
+                            <div className="text-xs text-muted-foreground truncate">{member?.name || t("common.noData")}</div>
                           </div>
-                        </TableCell>
-                        <TableCell>{format(new Date(entry.work_date), "yyyy-MM-dd")}</TableCell>
-                        <TableCell>{entry.hours_worked.toLocaleString(i18n.language)}</TableCell>
-                        <TableCell>{entry.overtime_hours.toLocaleString(i18n.language)}</TableCell>
-                        <TableCell>{entry.leave_hours.toLocaleString(i18n.language)} {entry.leave_type ? `(${entry.leave_type})` : ""}</TableCell>
-                        <TableCell className="font-semibold text-green-600">{formatMoney(entry.payable_amount)}</TableCell>
-                        <TableCell>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge
                             variant={
                               entry.status === "approved"
@@ -185,34 +290,76 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
                                 ? "outline"
                                 : "secondary"
                             }
+                            className="text-xs"
                           >
                             {t(`timesheet.status.${entry.status}`)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setEditing(entry);
-                              setFormOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteTimesheet(entry.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="px-4 py-3 border-t border-border bg-muted/30 space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">{t("timesheet.table.hours")}</p>
+                              <p className="font-semibold">{entry.hours_worked.toLocaleString(i18n.language)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">{t("timesheet.table.overtime")}</p>
+                              <p className="font-semibold text-amber-600">{entry.overtime_hours.toLocaleString(i18n.language)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">{t("timesheet.table.leave")}</p>
+                              <p className="font-semibold text-blue-600">
+                                {entry.leave_hours.toLocaleString(i18n.language)} {entry.leave_type ? `(${entry.leave_type})` : ""}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">{t("timesheet.table.payable")}</p>
+                              <p className="font-semibold text-green-600">{formatMoney(entry.payable_amount)}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">{t("team.info") || "Bilgi"}</p>
+                            <p className="text-sm">{member?.specialty}</p>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                setEditing(entry);
+                                setFormOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3 mr-1" />
+                              {t("common.edit") || "Düzenle"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-destructive hover:text-destructive"
+                              onClick={() => deleteTimesheet(entry.id)}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              {t("common.delete") || "Sil"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
 
       <TimesheetForm
         open={formOpen}

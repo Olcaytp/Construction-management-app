@@ -26,7 +26,7 @@ import { ReportsSection } from "@/components/ReportsSection";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InvoicesSection } from "@/components/InvoicesSection";
 import { TimesheetSection } from "@/components/TimesheetSection";
-import { LayoutDashboard, FolderKanban, ListTodo, Users, Plus, Building2, Pencil, Trash2, DollarSign, Package, UserCircle, Crown, BarChart3, Shield, FileText, Receipt } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ListTodo, Users, Plus, Building2, Pencil, Trash2, DollarSign, Package, UserCircle, Crown, BarChart3, Shield, FileText, Receipt, ChevronDown, Phone, Briefcase, Banknote } from "lucide-react";
 import { ContractGenerator } from "@/components/ContractGenerator";
 import { ContractsSection } from "@/components/ContractsSection";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
@@ -121,6 +121,7 @@ const Index = () => {
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editingTeamMember, setEditingTeamMember] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [expandedTeamMemberId, setExpandedTeamMemberId] = useState<string | null>(null);
 
   // Delete confirmation states
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: string } | null>(null);
@@ -302,8 +303,8 @@ const Index = () => {
       </AlertDialog>
 
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 sm:py-4">
+      <header className="border-b border-border bg-card sticky top-0 z-50 w-full">
+        <div className="w-full px-4 py-3 sm:py-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity">
               <div className="bg-primary p-1.5 sm:p-2 rounded-lg flex-shrink-0">
@@ -321,8 +322,8 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-center">
+      <div className="border-b border-border bg-card w-full">
+        <div className="w-full px-4 py-3 sm:py-4 flex justify-center">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-0 w-full">
             <div className="flex items-center justify-center gap-2">
               {/* Desktop Tabs */}
@@ -425,8 +426,8 @@ const Index = () => {
         </Tabs>
       </div>
 
-      <div className="w-full px-3 sm:px-4 py-4 sm:py-8 max-w-7xl mx-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+      <div className="w-full min-h-screen">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6 px-3 sm:px-4 py-4 sm:py-8">
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -707,24 +708,116 @@ const Index = () => {
                 {t('team.add')}
               </Button>
             </div>
-            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {teamMembers.map(member => (
-                <TeamMemberCard
-                  key={member.id}
-                  id={member.id}
-                  name={member.name}
-                  phone={member.phone}
-                  specialty={member.specialty}
-                  dailyWage={member.dailyWage}
-                  totalReceivable={member.totalReceivable}
-                  totalPaid={member.totalPaid}
-                  onEdit={() => {
-                    setEditingTeamMember(member);
-                    setTeamFormOpen(true);
-                  }}
-                  onDelete={() => handleDeleteTeamMember(member.id)}
-                />
-              ))}
+            <div className="space-y-2">
+              {teamMembers.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  {t('team.noTeamMembers') || "Henüz ekip üyesi eklenmemiş"}
+                </div>
+              ) : (
+                teamMembers.map((member, index) => {
+                  const isExpanded = expandedTeamMemberId === member.id;
+                  return (
+                    <button
+                      key={member.id}
+                      onClick={() => setExpandedTeamMemberId(isExpanded ? null : member.id)}
+                      className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                        isExpanded
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-muted"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{member.name}</div>
+                            <div className="text-xs text-muted-foreground truncate">{member.specialty}</div>
+                          </div>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </div>
+
+                      {isExpanded && (
+                        <div className="mt-4 pt-4 border-t border-border space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                <Phone className="h-3 w-3" />
+                                {t('team.phone') || "Telefon"}
+                              </div>
+                              <p className="text-sm font-medium break-all">{member.phone}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                <Briefcase className="h-3 w-3" />
+                                {t('team.specialty') || "Uzmanlık"}
+                              </div>
+                              <p className="text-sm font-medium">{member.specialty}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                <Banknote className="h-3 w-3" />
+                                {t('team.dailyWage') || "Günlük Ücret"}
+                              </div>
+                              <p className="text-sm font-medium">{member.dailyWage}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                <DollarSign className="h-3 w-3" />
+                                {t('team.totalReceivable') || "Toplam Alacak"}
+                              </div>
+                              <p className="text-sm font-medium">{member.totalReceivable}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">{t('team.totalPaid') || "Ödenen Tutar"}</p>
+                              <p className="text-sm font-semibold text-green-600">{member.totalPaid}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">{t('team.balance') || "Kalan"}</p>
+                              <p className={`text-sm font-semibold ${(member.totalReceivable || 0) - (member.totalPaid || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {(member.totalReceivable || 0) - (member.totalPaid || 0)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingTeamMember(member);
+                                setTeamFormOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3 mr-1" />
+                              {t('common.edit') || "Düzenle"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-destructive hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTeamMember(member.id);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              {t('common.delete') || "Sil"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             <TimesheetSection teamMembers={teamMembers} />
