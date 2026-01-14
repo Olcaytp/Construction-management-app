@@ -16,7 +16,10 @@
     "contracts": "Sözleşmeler",
     "subscription": "Abonelik",
     "admin": "Yönetici",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "allRightsReserved": "Tüm hakları saklıdır.",
+    "licenseInfo": "MIT Lisansı altında lisanslanmıştır.",
+    "appName": "İnşaat Yönetim Uygulaması"
   },
   "auth": {
     "signIn": "Giriş Yap",

@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "author": "Olcaytp",
+  "license": "MIT",
+  "copyright": "Copyright © 2026 Olcaytp. All rights reserved.",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-icons.js && vite build",

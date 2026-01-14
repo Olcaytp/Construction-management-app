@@ -1,4 +1,4 @@
-# İnşaat Takip Uygulaması - Supabase Edition
+﻿# İnşaat Takip Uygulaması - Supabase Edition
 
 **Lovable AI'dan Supabase'e Taşınmış Versiyon**
 
@@ -197,3 +197,9 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## 📜 Telif Hakkı ve Lisans
+
+Copyright © 2026 Olcaytp. Tüm hakları saklıdır.
+
+Bu proje [MIT Lisansı](./LICENSE) altında lisanslanmıştır. Detaylar için [LICENSE](./LICENSE) dosyasına bakın.

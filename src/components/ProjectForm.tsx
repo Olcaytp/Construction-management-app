@@ -1,3 +1,9 @@
+/**
+ * Copyright © 2026 Olcaytp. All rights reserved.
+ * This file is part of the Construction Management Application.
+ * Licensed under the MIT License. See LICENSE file for details.
+ */
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";

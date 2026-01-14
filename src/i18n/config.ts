@@ -1,3 +1,9 @@
+/**
+ * Copyright © 2026 Olcaytp. All rights reserved.
+ * This file is part of the Construction Management Application.
+ * Licensed under the MIT License. See LICENSE file for details.
+ */
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';

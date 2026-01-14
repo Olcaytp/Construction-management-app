@@ -1,3 +1,9 @@
+/**
+ * Copyright © 2026 Olcaytp. All rights reserved.
+ * This file is part of the Construction Management Application.
+ * Licensed under the MIT License. See LICENSE file for details.
+ */
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";

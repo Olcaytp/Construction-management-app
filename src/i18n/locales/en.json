@@ -16,7 +16,10 @@
     "contracts": "Contracts",
     "subscription": "Subscription",
     "admin": "Admin",
-    "logout": "Logout"
+    "logout": "Logout",
+    "allRightsReserved": "All rights reserved.",
+    "licenseInfo": "Licensed under MIT License.",
+    "appName": "Construction Management Application"
   },
   "auth": {
     "signIn": "Sign In",

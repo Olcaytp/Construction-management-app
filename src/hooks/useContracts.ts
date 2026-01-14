@@ -1,3 +1,9 @@
+/**
+ * Copyright © 2026 Olcaytp. All rights reserved.
+ * This file is part of the Construction Management Application.
+ * Licensed under the MIT License. See LICENSE file for details.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./useAuth";
 import { supabase } from "@/integrations/supabase/client";

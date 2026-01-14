@@ -1,3 +1,9 @@
+/**
+ * Copyright © 2026 Olcaytp. All rights reserved.
+ * This file is part of the Construction Management Application.
+ * Licensed under the MIT License. See LICENSE file for details.
+ */
+
 import { useTranslation } from "react-i18next";
 import { useAdmin } from "@/hooks/useAdmin";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
