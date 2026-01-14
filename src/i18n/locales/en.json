@@ -101,7 +101,10 @@
     "labels": {
       "budget": "Budget",
       "cost": "Cost",
-      "revenue": "Revenue"
+      "revenue": "Revenue",
+      "netProfit": "Net Profit",
+      "profitMargin": "Profit Margin",
+      "projectProgress": "Project Progress"
     }
   },
   "project": {

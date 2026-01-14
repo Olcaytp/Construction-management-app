@@ -31,7 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { InvoiceForm } from "@/components/InvoiceForm";
-import { CheckCircle, Trash2, FileText } from "lucide-react";
+import { CheckCircle, Trash2, FileText, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -48,6 +48,7 @@ interface InvoicesSectionProps {
 export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
   const { t, i18n } = useTranslation();
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
+  const [editingInvoice, setEditingInvoice] = useState<any>(null);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   const { invoices, isLoading, createInvoice, deleteInvoice, approveInvoice } = useInvoices(selectedProjectId);
   const { teamMembers } = useTeamMembers();
@@ -298,15 +299,15 @@ export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
               {t('invoice.empty')}
             </div>
           ) : (
-            <div className="w-full overflow-x-auto">
+            <div className="w-full overflow-x-auto -mx-3 sm:mx-0">
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.project')}</TableHead>
-                    <TableHead className="text-xs sm:text-sm">{t('invoice.table.workType')}</TableHead>
-                    <TableHead className="text-xs sm:text-sm">{t('invoice.table.worker')}</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">{t('invoice.table.workType')}</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell">{t('invoice.table.worker')}</TableHead>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.quantity')}</TableHead>
-                    <TableHead className="text-xs sm:text-sm">{t('invoice.table.unitPrice')}</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell">{t('invoice.table.unitPrice')}</TableHead>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.total')}</TableHead>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.status')}</TableHead>
                     <TableHead className="text-xs sm:text-sm">{t('invoice.table.actions')}</TableHead>
@@ -315,29 +316,38 @@ export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
                 <TableBody>
                   {invoices.map((invoice) => (
                     <TableRow key={invoice.id}>
-                      <TableCell className="text-xs sm:text-sm font-medium text-blue-600">{selectedProject?.title}</TableCell>
-                      <TableCell className="font-medium text-xs sm:text-sm">{getWorkTypeLabel(invoice.work_type)}</TableCell>
-                      <TableCell className="text-xs sm:text-sm font-medium">{getWorkerName(invoice.assigned_to)}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
+                      <TableCell className="text-xs sm:text-sm font-medium text-blue-600 px-2 sm:px-4">{selectedProject?.title}</TableCell>
+                      <TableCell className="font-medium text-xs sm:text-sm hidden sm:table-cell">{getWorkTypeLabel(invoice.work_type)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm font-medium hidden md:table-cell">{getWorkerName(invoice.assigned_to)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm px-1 sm:px-4">
                         {invoice.quantity} {invoice.unit}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{formatCurrency(invoice.unit_price)}</TableCell>
-                      <TableCell className="font-bold text-xs sm:text-sm">
+                      <TableCell className="text-xs sm:text-sm hidden md:table-cell">{formatCurrency(invoice.unit_price)}</TableCell>
+                      <TableCell className="font-bold text-xs sm:text-sm px-1 sm:px-4">
                         {formatCurrency(invoice.total_amount)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-1 sm:px-4">
                         <Badge variant={getStatusLabel(invoice.status).variant} className="text-xs">
                           {getStatusLabel(invoice.status).label}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 sm:gap-2 flex-col sm:flex-row">
+                      <TableCell className="px-1 sm:px-4">
+                        <div className="flex gap-1 flex-col sm:flex-row">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingInvoice(invoice)}
+                            className="gap-1 text-blue-600 hover:text-blue-700 text-xs h-7 sm:h-9 px-1 sm:px-2"
+                          >
+                            <Pencil className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="hidden sm:inline">{t('common.edit')}</span>
+                          </Button>
                           {invoice.status === "pending" && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => approveInvoice.mutate(invoice.id)}
-                              className="gap-1 text-xs h-7 sm:h-9 px-2"
+                              className="gap-1 text-xs h-7 sm:h-9 px-1 sm:px-2"
                             >
                               <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                               <span className="hidden sm:inline">{t('invoice.actions.approve')}</span>
@@ -345,7 +355,7 @@ export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
                           )}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="gap-1 text-red-600 hover:text-red-700 text-xs h-7 sm:h-9 px-2">
+                              <Button variant="ghost" size="sm" className="gap-1 text-red-600 hover:text-red-700 text-xs h-7 sm:h-9 px-1 sm:px-2">
                                 <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                                 <span className="hidden sm:inline">{t('invoice.actions.delete')}</span>
                               </Button>

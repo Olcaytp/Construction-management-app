@@ -571,54 +571,55 @@ const Index = () => {
                   : undefined;
 
                 return (
-                  <div key={project.id} className="relative group">
-                    <ProjectCard
-                      title={project.title}
-                      location={project.description}
-                      startDate={project.startDate}
-                      team={teamNames}
-                      progress={project.progress}
-                      status={project.status as any}
-                      photos={project.photos}
-                      onClick={() => {
-                        setEditingProject(project);
-                        setProjectFormOpen(true);
-                      }}
-                    />
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div onClick={(e) => e.stopPropagation()} title={disableReason}>
-                        <ContractGenerator
-                          project={project}
-                          customer={customers.find(c => c.id === project.customerId) || null}
-                          teamMembers={teamMembers.filter(m => project.assignedTeam.includes(m.id))}
-                          regenerationAllowed={canRegenerate}
-                        />
+                  <ProjectCard
+                    key={project.id}
+                    title={project.title}
+                    location={project.description}
+                    startDate={project.startDate}
+                    team={teamNames}
+                    progress={project.progress}
+                    status={project.status as any}
+                    photos={project.photos}
+                    onClick={() => {
+                      setEditingProject(project);
+                      setProjectFormOpen(true);
+                    }}
+                    footer={
+                      <div className="flex gap-1 sm:gap-2 w-full" onClick={(e) => e.stopPropagation()}>
+                        <div title={disableReason}>
+                          <ContractGenerator
+                            project={project}
+                            customer={customers.find(c => c.id === project.customerId) || null}
+                            teamMembers={teamMembers.filter(m => project.assignedTeam.includes(m.id))}
+                            regenerationAllowed={canRegenerate}
+                          />
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProject(project);
+                            setProjectFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProject(project.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingProject(project);
-                          setProjectFormOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteProject(project.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    }
+                  />
                 );
               })}
             </div>

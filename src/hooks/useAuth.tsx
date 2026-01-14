@@ -20,36 +20,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // First, try to restore session from storage
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+          
+          try {
+            const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
+            console.log(`[AUTH] initial user=${session?.user?.id ?? 'null'} token=${tag}`);
+          } catch {}
+        }
+      } catch (error) {
+        console.error('[AUTH] Session restore error:', error);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Initialize auth on app load
+    initializeAuth();
+
+    // Set up auth state listener for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        try {
-          const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
-          console.log(`[AUTH] event=${event} user=${session?.user?.id ?? 'null'} token=${tag}`);
-        } catch {}
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          try {
+            const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
+            console.log(`[AUTH] event=${event} user=${session?.user?.id ?? 'null'} token=${tag}`);
+          } catch {}
+        }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      try {
-        const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
-        console.log(`[AUTH] initial user=${session?.user?.id ?? 'null'} token=${tag}`);
-      } catch {}
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
+      navigate("/auth");
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Even if signOut fails, clear local state and redirect
+      setSession(null);
+      setUser(null);
+      navigate("/auth");
+    }
   };
 
   const updateUserProfile = async (data: { full_name?: string; phone?: string }) => {

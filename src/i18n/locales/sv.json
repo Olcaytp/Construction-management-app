@@ -101,7 +101,10 @@
     "labels": {
       "budget": "Budget",
       "cost": "Kostnad",
-      "revenue": "Intäkt"
+      "revenue": "Intäkt",
+      "netProfit": "Nettovinst",
+      "profitMargin": "Vinstmarginal",
+      "projectProgress": "Projektprogress"
     }
   },
   "project": {

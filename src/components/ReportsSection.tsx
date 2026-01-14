@@ -506,28 +506,28 @@ ${teamMembers.map(m => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">{t('app.reports')}</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold">{t('app.reports')}</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {hasPremiumAccess ? t('reports.subtitlePremium') : t('reports.subtitleBasic')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           {hasPremiumAccess && (
-            <Badge className="bg-primary gap-1">
+            <Badge className="bg-primary gap-1 w-fit">
               <Crown className="h-3 w-3" />
               {isAdmin ? t('reports.admin') : t('reports.premium')}
             </Badge>
           )}
-          <div className="flex gap-2">
-            <Button onClick={exportToPDF} variant="outline" size="sm" className="gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button onClick={exportToPDF} variant="outline" size="sm" className="gap-2 text-xs">
               <Download className="h-4 w-4" />
               {t('reports.downloadPDF')}
             </Button>
-            <Button onClick={exportToWord} variant="outline" size="sm" className="gap-2">
+            <Button onClick={exportToWord} variant="outline" size="sm" className="gap-2 text-xs">
               <Download className="h-4 w-4" />
               {t('reports.downloadWord')}
             </Button>
@@ -536,13 +536,13 @@ ${teamMembers.map(m => {
       </div>
 
       {/* Basic Reports - Available for all */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
           {t('reports.basicReports')}
         </h3>
         
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('reports.totalProjects')}</CardDescription>
@@ -678,40 +678,40 @@ ${teamMembers.map(m => {
                         
                         return (
                           <>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className="bg-blue-50 p-3 rounded-lg">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                              <div className="bg-blue-50 dark:bg-blue-950 p-2 sm:p-3 rounded-lg">
                                 <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.budget')}</p>
-                                <p className="text-lg font-bold">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
                               </div>
-                              <div className="bg-orange-50 p-3 rounded-lg">
+                              <div className="bg-orange-50 dark:bg-orange-950 p-2 sm:p-3 rounded-lg">
                                 <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.cost')}</p>
-                                <p className="text-lg font-bold">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
                               </div>
-                              <div className="bg-green-50 p-3 rounded-lg">
+                              <div className="bg-green-50 dark:bg-green-950 p-2 sm:p-3 rounded-lg">
                                 <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.revenue')}</p>
-                                <p className="text-lg font-bold">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
                               </div>
                             </div>
                             
-                            <div className="border-t pt-4">
+                            <div className="border-t pt-3 sm:pt-4 mt-3 sm:mt-4">
                               <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-muted-foreground">Net Kâr</span>
-                                  <span className="font-semibold text-green-600">
+                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.netProfit')}</span>
+                                  <span className="text-sm sm:text-base font-semibold text-green-600">
                                     ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString('tr-TR')}
                                   </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-muted-foreground">Kâr Marjı</span>
-                                  <span className="font-semibold">
+                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.profitMargin')}</span>
+                                  <span className="text-sm sm:text-base font-semibold">
                                     {currentProject.revenue && currentProject.revenue > 0
                                       ? Math.round((((currentProject.revenue || 0) - (currentProject.actualCost || 0)) / (currentProject.revenue || 1)) * 100)
                                       : 0}%
                                   </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-muted-foreground">Proje İlerleme</span>
-                                  <span className="font-semibold">{currentProject.progress}%</span>
+                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.labels.projectProgress')}</span>
+                                  <span className="text-sm sm:text-base font-semibold">{currentProject.progress}%</span>
                                 </div>
                               </div>
                             </div>

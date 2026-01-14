@@ -184,7 +184,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
             {!selectedMemberId ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>{t("timesheet.selectMemberFirst") || "Puantaj kayıtlarını görmek için sol taraftan ekip üyesi seçin"}</p>
+                <p>Lütfen ekip üyesi seçiniz</p>
               </div>
             ) : isLoading ? (
               <div className="text-center py-6 text-muted-foreground">{t("common.loading")}</div>

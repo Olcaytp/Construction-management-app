@@ -101,7 +101,10 @@
     "labels": {
       "budget": "Bütçe",
       "cost": "Maliyet",
-      "revenue": "Gelir"
+      "revenue": "Gelir",
+      "netProfit": "Net Kâr",
+      "profitMargin": "Kâr Marjı",
+      "projectProgress": "Proje İlerleme"
     }
   },
   "project": {

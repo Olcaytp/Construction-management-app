@@ -514,9 +514,9 @@ export const ContractsSection = () => {
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("common.confirm")}</AlertDialogTitle>
+            <AlertDialogTitle>Sözleşmeyi Sil</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("contract.deleteConfirm") || "Bu sözleşmeyi silmek istediğinizden emin misiniz?"}
+              Bu sözleşmeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">

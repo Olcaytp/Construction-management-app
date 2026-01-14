@@ -8,11 +8,22 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Determine storage based on environment
+let storageAdapter: any = localStorage;
+
+// For Capacitor (mobile) apps, use localStorage which is available
+// Supabase will handle session persistence automatically
+if (typeof window !== 'undefined' && window.location.protocol === 'capacitor://') {
+  console.log('[SUPABASE] Running in Capacitor environment');
+}
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: localStorage,
+    storage: storageAdapter,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce', // Improved security for mobile
   }
 });
 
@@ -25,5 +36,5 @@ try {
     : SUPABASE_ANON_KEY?.startsWith('sb_temp_')
     ? 'temp'
     : 'unknown';
-  console.log(`[SUPABASE CLIENT] url=${SUPABASE_URL} key=${keyTag}`);
+  console.log(`[SUPABASE CLIENT] url=${SUPABASE_URL} key=${keyTag} persistSession=true autoRefreshToken=true`);
 } catch {}

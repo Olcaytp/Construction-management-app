@@ -12,6 +12,13 @@ const config: CapacitorConfig = {
       showSpinner: true,
       spinnerStyle: "small"
     }
+  },
+  // Enable session persistence across app launches
+  ios: {
+    preferredContentMode: 'mobile'
+  },
+  android: {
+    preferredContentMode: 'mobile'
   }
 };
 

@@ -472,9 +472,9 @@ tr:nth-child(even) {
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("common.confirm")}</AlertDialogTitle>
+            <AlertDialogTitle>Malzemeyi Sil</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("common.deleteConfirm") || "Bu malzemeyi silmek istediğinizden emin misiniz?"}
+              Bu malzemeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-2 justify-end">

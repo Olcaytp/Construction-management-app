@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MapPin, Calendar, Users, Image as ImageIcon } from "lucide-react";
@@ -13,6 +13,7 @@ interface ProjectCardProps {
   status: "active" | "completed" | "planning";
   photos?: string[];
   onClick?: () => void;
+  footer?: React.ReactNode;
 }
 
 export const ProjectCard = ({ 
@@ -23,7 +24,8 @@ export const ProjectCard = ({
   progress, 
   status,
   photos = [],
-  onClick 
+  onClick,
+  footer
 }: ProjectCardProps) => {
   const { t } = useTranslation();
   const PHOTO_DEBUG = import.meta.env.DEV;
@@ -45,10 +47,10 @@ export const ProjectCard = ({
       className="hover:shadow-lg transition-all duration-300 cursor-pointer border-border hover:border-primary/50" 
       onClick={onClick}
     >
-      <CardHeader className="pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+      <CardHeader className="pb-3 pr-12 sm:pr-3">
+        <div className="flex flex-col gap-2">
           <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
-          <Badge className={statusColors[status]}>{statusLabels[status]}</Badge>
+          <Badge className={`${statusColors[status]} w-fit`}>{statusLabels[status]}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -102,6 +104,7 @@ export const ProjectCard = ({
           <Progress value={progress} className="h-2" />
         </div>
       </CardContent>
+      {footer && <CardFooter className="flex gap-1 sm:gap-2 border-t border-border pt-3">{footer}</CardFooter>}
     </Card>
   );
 };

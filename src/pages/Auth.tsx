@@ -17,17 +17,27 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState("signin");
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setCheckingAuth(false);
       }
-    });
+    };
+
+    checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
@@ -117,10 +127,20 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
-      <div className="absolute top-4 right-4">
-        <LanguageSelector />
-      </div>
-      <Card className="w-full max-w-md">
+      {/* Show loading indicator while checking authentication */}
+      {checkingAuth && (
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">{t('auth.loading') || 'Yükleniyor...'}</p>
+        </div>
+      )}
+      
+      {!checkingAuth && (
+        <>
+          <div className="absolute top-4 right-4">
+            <LanguageSelector />
+          </div>
+          <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
             <Building2 className="w-6 h-6 text-primary-foreground" />
@@ -246,6 +266,8 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 };
