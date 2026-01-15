@@ -1,9 +1,3 @@
-/**
- * Copyright © 2026 Olcaytp. All rights reserved.
- * This file is part of the Construction Management Application.
- * Licensed under the MIT License. See LICENSE file for details.
- */
-
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
