@@ -99,12 +99,35 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
     const hourly = toNumber(values.hourlyRate);
     const overtimeHours = toNumber(values.overtimeHours);
     const leaveHours = toNumber(values.leaveHours);
+    const leaveType = values.leaveType;
 
-    const base = hours * hourly;
+    // Only deduct leave hours if it's unpaid leave
+    // Paid leave (paid), sick leave (sick), and annual leave (annual) are fully paid
+    let deductibleLeaveHours = 0;
+    if (leaveType === "unpaid") {
+      deductibleLeaveHours = leaveHours;
+    }
+
+    const regularHours = Math.max(0, hours - deductibleLeaveHours);
+    const base = regularHours * hourly;
     const overtime = overtimeHours * hourly * 1.5;
-    const leaveDeduction = leaveHours * hourly;
-    return Math.max(0, base + overtime - leaveDeduction);
+    return Math.max(0, base + overtime);
   };
+
+  // Synchronize hours and days based on calculation type
+  useEffect(() => {
+    if (watchValues.calculationType === "days") {
+      // If user enters days, keep daysWorked and sync hoursWorked
+      if (watchValues.daysWorked > 0) {
+        form.setValue("hoursWorked", watchValues.daysWorked * 8);
+      }
+    } else {
+      // If user enters hours, keep hoursWorked and sync daysWorked
+      if (watchValues.hoursWorked > 0) {
+        form.setValue("daysWorked", watchValues.hoursWorked / 8);
+      }
+    }
+  }, [watchValues.calculationType, form]);
 
   // Update hourly rate when member changes
   useEffect(() => {
@@ -245,7 +268,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                           min="0"
                           step="0.5"
                           value={field.value && field.value > 0 ? field.value : ""}
-                          onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? 0 : Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue("daysWorked", val / 8);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -265,7 +292,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                           min="0"
                           step="0.5"
                           value={field.value && field.value > 0 ? field.value : ""}
-                          onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? 0 : Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue("hoursWorked", val * 8);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
