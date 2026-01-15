@@ -254,6 +254,14 @@ const Index = () => {
     setTaskFormOpen(false);
   };
 
+  const handleTaskValidationError = (message: string) => {
+    toast({
+      variant: "destructive",
+      title: "Hata",
+      description: message,
+    });
+  };
+
   const handleEditTask = (data: any) => {
     if (!editingTask) return;
     const taskData = {
@@ -633,10 +641,24 @@ const Index = () => {
           <TabsContent value="tasks" className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t('app.tasks')}</h2>
-              <Button onClick={() => {
-                setEditingTask(null);
-                setTaskFormOpen(true);
-              }} className="gap-2 w-full sm:w-auto">
+              <Button 
+                onClick={() => {
+                  setEditingTask(null);
+                  setTaskFormOpen(true);
+                }} 
+                className="gap-2 w-full sm:w-auto"
+                disabled={
+                  projects.length === 0 || 
+                  (!hasPremiumAccess && projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject))
+                }
+                title={
+                  projects.length === 0 
+                    ? 'Önce proje oluşturunuz' 
+                    : (!hasPremiumAccess && projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) 
+                      ? 'Tüm projelerin görev limiti dolu' 
+                      : '')
+                }
+              >
                 <Plus className="h-4 w-4" />
                 {t('task.add')}
               </Button>
@@ -1241,6 +1263,10 @@ const Index = () => {
         title={editingTask ? t('task.edit') : t('task.add')}
         projects={projects}
         teamMembers={teamMembers}
+        tasksByProject={Object.fromEntries(projects.map(p => [p.id, tasks.filter(t => t.projectId === p.id).length]))}
+        maxTasksPerProject={currentLimits.maxTasksPerProject}
+        hasPremiumAccess={hasPremiumAccess}
+        onValidationError={handleTaskValidationError}
         defaultValues={editingTask ? {
           title: editingTask.title,
           project: editingTask.projectId,

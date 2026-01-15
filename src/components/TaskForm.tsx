@@ -68,6 +68,10 @@ interface TaskFormProps {
   title: string;
   projects: Project[];
   teamMembers: TeamMember[];
+  tasksByProject?: Record<string, number>;
+  maxTasksPerProject?: number;
+  hasPremiumAccess?: boolean;
+  onValidationError?: (message: string) => void;
 }
 
 export const TaskForm = ({
@@ -78,6 +82,10 @@ export const TaskForm = ({
   title,
   projects,
   teamMembers,
+  tasksByProject = {},
+  maxTasksPerProject = 3,
+  hasPremiumAccess = false,
+  onValidationError,
 }: TaskFormProps) => {
   const { t } = useTranslation();
   const formSchema = getFormSchema(t);
@@ -110,9 +118,18 @@ export const TaskForm = ({
         estimatedCost: "",
       });
     }
-  }, [defaultValues, form]);
+  }, [defaultValues, form, open, tasksByProject]);
 
   const handleSubmit = (data: FormData) => {
+    // Validate task limit before submitting (only for new tasks, not editing)
+    if (!hasPremiumAccess && !defaultValues) {
+      const projectTaskCount = tasksByProject[data.project] || 0;
+      if (projectTaskCount >= maxTasksPerProject) {
+        onValidationError?.(`Bu proje zaten ${maxTasksPerProject} görev limitine ulaştı. Premium plana yükseltin.`);
+        return;
+      }
+    }
+    
     onSubmit(data);
     form.reset();
     onOpenChange(false);
@@ -152,11 +169,21 @@ export const TaskForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.title}
-                        </SelectItem>
-                      ))}
+                      {projects
+                        .filter((project) => {
+                          const taskCount = tasksByProject[project.id] || 0;
+                          const isAtLimit = !hasPremiumAccess && taskCount >= maxTasksPerProject;
+                          return !isAtLimit;
+                        })
+                        .map((project) => {
+                          const taskCount = tasksByProject[project.id] || 0;
+                          return (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.title}
+                              {taskCount > 0 && ` (${taskCount}/${maxTasksPerProject})`}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
