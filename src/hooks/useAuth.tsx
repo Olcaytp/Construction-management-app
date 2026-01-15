@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (isMounted) {
           setSession(session);
           setUser(session?.user ?? null);
-          setLoading(false);
           
           try {
             const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
@@ -39,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         console.error('[AUTH] Session restore error:', error);
+      } finally {
         if (isMounted) {
           setLoading(false);
         }
@@ -54,6 +54,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (isMounted) {
           setSession(session);
           setUser(session?.user ?? null);
+          setLoading(false);
+          
           try {
             const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
             console.log(`[AUTH] event=${event} user=${session?.user?.id ?? 'null'} token=${tag}`);
