@@ -38,9 +38,9 @@ export const TaskItem = ({
   };
 
   const statusLabels = {
-    pending: t('task.pending'),
-    "in-progress": t('task.inProgress'),
-    completed: t('task.completed'),
+    pending: t('task.status.pending'),
+    "in-progress": t('task.status.in-progress'),
+    completed: t('task.status.completed'),
   };
 
   const priorityColors = {

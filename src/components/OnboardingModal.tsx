@@ -95,8 +95,14 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleSkip()}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) return; // Modal dışına tıklanmaya izin verme
+      // Hiçbir şey yapma
+    }}>
+      <DialogContent 
+        className="max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
             <Building2 className="w-6 h-6 text-primary" />

@@ -180,7 +180,10 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-md max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>

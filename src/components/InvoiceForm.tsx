@@ -164,7 +164,10 @@ export const InvoiceForm = ({
           {t("invoice.form.addButton")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="sticky top-0 bg-background z-10">
           <DialogTitle>{t("invoice.form.title")}</DialogTitle>
           <DialogDescription>{t("invoice.form.description")}</DialogDescription>

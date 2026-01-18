@@ -464,7 +464,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
 
   return (
     <div className="flex gap-2">
-      {existingContract && (
+      {existingContract ? (
         <Dialog open={viewOpen} onOpenChange={setViewOpen}>
           <DialogTrigger asChild>
             <Button variant="secondary" size="sm" className="gap-2">
@@ -475,6 +475,7 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
           <DialogContent 
             className="w-full max-w-[840px] h-[90vh] flex flex-col overflow-hidden mx-auto"
             aria-describedby="contract-view-description"
+            onPointerDownOutside={(e) => e.preventDefault()}
           >
             <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
               <div className="flex items-center justify-between gap-4">
@@ -520,25 +521,20 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="flex-1 px-6 py-4 border-0 bg-white dark:bg-slate-950 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-none"
+                className="flex-1 px-6 py-4 border-0 bg-white dark:bg-slate-950 font-serif text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-none"
                 placeholder="Sözleşme metnini düzenleyin..."
               />
             ) : (
               <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
-                <div className="px-6 py-4">
-                  <div
-                    className="prose prose-sm dark:prose-invert max-w-[760px] break-words whitespace-normal"
-                    style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word' }}
-                    dangerouslySetInnerHTML={{ __html: mdToSafeHtml(existingContract.content) }}
-                  />
+                <div className="px-6 py-4 whitespace-pre-wrap break-words font-serif leading-relaxed">
+                  <p className="text-foreground text-sm">{cleanMarkdown(existingContract.content)}</p>
                 </div>
               </div>
             )}
           </DialogContent>
         </Dialog>
-      )}
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2"
             disabled={(!isPremium && contractsThisMonth >= FREE_MONTHLY_CONTRACT_LIMIT) || blockNewGeneration}
@@ -741,14 +737,16 @@ export const ContractGenerator = ({ project, customer, teamMembers, onContractSa
               </div>
               <div className="flex-1 border rounded-lg p-4 bg-muted/30 overflow-auto">
                 <div 
-                  className="prose prose-sm dark:prose-invert max-w-none break-words"
-                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}
-                  dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract) }} />
+                  className="whitespace-pre-wrap break-words font-serif text-sm leading-relaxed text-foreground"
+                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
+                  {cleanMarkdown(contract)}
+                </div>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 };

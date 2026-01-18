@@ -275,46 +275,46 @@ export const HeaderMenu = () => {
           {/* Profil */}
           <DropdownMenuItem
             onClick={() => setProfileOpen(true)}
-            className="gap-3 py-3 px-4 cursor-pointer hover:bg-accent"
+            className="gap-3 py-4 px-4 cursor-pointer hover:bg-accent transition-colors"
           >
-            <div className="flex items-center gap-3 flex-1">
-              <User className="h-5 w-5 text-primary" />
-              <span className="text-sm">{t("app.profile") || "Profil"}</span>
+            <div className="flex items-center gap-4 flex-1">
+              <User className="h-5 w-5 text-primary flex-shrink-0" />
+              <span className="text-sm font-medium">{t("app.profile") || "Profil"}</span>
             </div>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
           {/* Dil */}
-          <DropdownMenuLabel className="text-xs text-muted-foreground px-4">
+          <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-4 mt-2">
             {t("app.language") || "Dil"}
           </DropdownMenuLabel>
           <DropdownMenuItem
             onClick={() => changeLanguage("tr")}
-            className={`gap-3 py-2 px-4 cursor-pointer ${
-              i18n.language === "tr" ? "bg-primary/10" : ""
+            className={`gap-3 py-3 px-4 cursor-pointer transition-colors ${
+              i18n.language === "tr" ? "bg-primary/10 font-semibold" : ""
             }`}
           >
-            <Languages className="h-4 w-4" />
+            <Languages className="h-5 w-5 flex-shrink-0" />
             <span className="text-sm">Türkçe (TR)</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => changeLanguage("en")}
-            className={`gap-3 py-2 px-4 cursor-pointer ${
-              i18n.language === "en" ? "bg-primary/10" : ""
+            className={`gap-3 py-3 px-4 cursor-pointer transition-colors ${
+              i18n.language === "en" ? "bg-primary/10 font-semibold" : ""
             }`}
           >
-            <Languages className="h-4 w-4" />
+            <Languages className="h-5 w-5 flex-shrink-0" />
             <span className="text-sm">English (EN)</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => changeLanguage("sv")}
-            className={`gap-3 py-2 px-4 cursor-pointer ${
-              i18n.language === "sv" ? "bg-primary/10" : ""
+            className={`gap-3 py-3 px-4 cursor-pointer transition-colors ${
+              i18n.language === "sv" ? "bg-primary/10 font-semibold" : ""
             }`}
           >
-            <Languages className="h-4 w-4" />
-            <span className="text-sm">Svenska (SV)</span>
+            <Languages className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm\">Svenska (SV)</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

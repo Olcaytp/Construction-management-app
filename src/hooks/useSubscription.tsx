@@ -29,53 +29,52 @@ export const SUBSCRIPTION_TIERS = {
     price: 0,
     currency: "TRY",
     features: [
-      "2 proje",
-      "2 müşteri",
-      "2 ekip üyesi",
-      "3 görev/proje",
-      "2 fotoğraf/proje",
-      "Temel raporlama",
-      "Basit AI sözleşme ve malzeme önerileri",
-      "E-posta desteği"
+      "📊 Aktif Proje: 2 Adet",
+      "👥 Müşteri: 2 Adet",
+      "👨‍💼 Ekip Üyesi: 2 Kişi",
+      "✓ Görev Sayısı: 5 Görev / Proje",
+      "📸 Fotoğraf: 5 Fotoğraf / Proje",
+      "🤖 AI Özellikleri: Temel Öneriler",
+      "📄 Raporlama: Yok",
+      "📧 E-posta desteği"
     ]
   },
   premium_monthly: {
     product_id: "prod_Tm6RaLjOTuAMgO",
     price_id: "price_1SoYEUBqz5IswCfZPLnFK8VG",
-    name: "Premium (Aylık)",
+    name: "Standart",
     price: 250,
     currency: "TRY",
     billing_period: "monthly",
     features: [
-      "Sınırsız proje",
-      "Sınırsız müşteri",
-      "Sınırsız ekip üyesi",
-      "Sınırsız görev",
-      "5 fotoğraf/proje",
-      "Gelişmiş raporlama",
-      "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",
-      "Öncelikli destek"
+      "📊 Aktif Proje: 15 Adet",
+      "👥 Müşteri: 50 Adet",
+      "👨‍💼 Ekip Üyesi: 10 Kişi",
+      "✓ Görev Sayısı: 50 Görev / Proje",
+      "📸 Fotoğraf: 10 Fotoğraf / Proje",
+      "🤖 AI Özellikleri: AI Sözleşme Şablonları",
+      "📄 Raporlama: PDF Çıktısı",
+      "⭐ Öncelikli destek"
     ]
   },
   premium_yearly: {
     product_id: "prod_Tm6SDgRvgAk69w",
     price_id: "price_1SoYFrBqz5IswCfZqC0zTj9e",
-    name: "Premium (Yıllık)",
-    price: 2500,
+    name: "Premium",
+    price: 1000,
     currency: "TRY",
     billing_period: "yearly",
     save_percentage: 25,
-    monthly_equivalent: 208.33,
+    monthly_equivalent: 83.33,
     features: [
-      "Sınırsız proje",
-      "Sınırsız müşteri",
-      "Sınırsız ekip üyesi",
-      "Sınırsız görev",
-      "5 fotoğraf/proje",
-      "Gelişmiş raporlama",
-      "Gelişmiş AI sözleşme şablonları ve malzeme optimizasyonu",
-      "Öncelikli destek",
-      "✨ %25 tasarruf! (Aylık 208.33₺)"
+      "📊 Aktif Proje: 50 Adet",
+      "👥 Müşteri: 250 Adet",
+      "👨‍💼 Ekip Üyesi: 40 Kişi",
+      "✓ Görev Sayısı: 250 Görev / Proje",
+      "📸 Fotoğraf: 100 Fotoğraf / Proje",
+      "🤖 AI Özellikleri: Full AI Maliyet Analizi",
+      "📄 Raporlama: Excel + Kurumsal Logolu PDF",
+      "🏆 VIP destek"
     ]
   }
 } as const;

@@ -12,6 +12,9 @@ interface ProjectCardProps {
   progress: number;
   status: "active" | "completed" | "planning";
   photos?: string[];
+  budget?: number;
+  actualCost?: number;
+  revenue?: number;
   onClick?: () => void;
   footer?: React.ReactNode;
 }
@@ -24,6 +27,9 @@ export const ProjectCard = ({
   progress, 
   status,
   photos = [],
+  budget = 0,
+  actualCost = 0,
+  revenue = 0,
   onClick,
   footer
 }: ProjectCardProps) => {
@@ -103,6 +109,30 @@ export const ProjectCard = ({
           </div>
           <Progress value={progress} className="h-2" />
         </div>
+
+        {/* Financial Information */}
+        {(budget > 0 || actualCost > 0 || revenue > 0) && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            {budget > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("project.budget")}</span>
+                <span className="font-medium text-foreground">₺{budget.toLocaleString()}</span>
+              </div>
+            )}
+            {actualCost > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("project.actualCost")}</span>
+                <span className="font-medium text-orange-600">{actualCost > budget ? '+' : ''}₺{actualCost.toLocaleString()}</span>
+              </div>
+            )}
+            {revenue > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t("project.revenue")}</span>
+                <span className="font-medium text-green-600">₺{revenue.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex gap-1 sm:gap-2 border-t border-border pt-3">{footer}</CardFooter>
     </Card>

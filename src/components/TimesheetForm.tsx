@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -187,7 +187,10 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="sticky top-0 bg-background z-10">
           <DialogTitle>{t("timesheet.form.title")}</DialogTitle>
           <DialogDescription>{t("timesheet.form.subtitle")}</DialogDescription>
@@ -203,9 +206,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                   <FormItem>
                     <FormLabel>{t("timesheet.form.member")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("timesheet.form.memberPlaceholder") || undefined} />
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("timesheet.form.memberPlaceholder") || "Ustayı Seç"} />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         {teamMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
@@ -242,9 +247,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                   <FormItem>
                     <FormLabel>{t("timesheet.form.calculationType") || "Hesap Türü"}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectItem value="hours">{t("timesheet.form.hours") || "Saat"}</SelectItem>
                         <SelectItem value="days">{t("timesheet.form.days") || "Gün"}</SelectItem>
@@ -354,9 +361,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                   <FormItem>
                     <FormLabel>{t("timesheet.form.leaveType")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ""}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("timesheet.form.leaveTypePlaceholder") || undefined} />
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectItem value="paid">{t("timesheet.form.leaveTypes.paid")}</SelectItem>
                         <SelectItem value="unpaid">{t("timesheet.form.leaveTypes.unpaid")}</SelectItem>
@@ -396,9 +405,11 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
                   <FormItem>
                     <FormLabel>{t("timesheet.form.status")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("timesheet.form.status") || undefined} />
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectItem value="pending">{t("timesheet.status.pending")}</SelectItem>
                         <SelectItem value="approved">{t("timesheet.status.approved")}</SelectItem>

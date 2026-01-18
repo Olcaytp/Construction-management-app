@@ -53,16 +53,16 @@ const cleanMarkdown = (text: string): string => {
   
   // Remove any remaining markdown syntax
   plainText = plainText
-    .replace(/\*\*(.+?)\*\*/g, "$1")  // Remove bold **text**
-    .replace(/\*(.+?)\*/g, "$1")      // Remove italic *text*
-    .replace(/__(.+?)__/g, "$1")      // Remove bold __text__
-    .replace(/_(.+?)_/g, "$1")        // Remove italic _text_
-    .replace(/~~(.+?)~~/g, "$1")      // Remove strikethrough ~~text~~
-    .replace(/`(.+?)`/g, "$1")        // Remove inline code `text`
-    .replace(/^\s*#{1,6}\s+/gm, "")   // Remove headings
-    .replace(/^\s*[-*+]\s+/gm, "• ")  // Convert list markers to bullets
-    .replace(/^\s*\d+\.\s+/gm, "")    // Remove numbered list markers
-    .replace(/\n{3,}/g, "\n\n")       // Clean up excessive whitespace
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/_(.+?)_/g, "$1")
+    .replace(/~~(.+?)~~/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/^\s*#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
   
   return plainText;
@@ -357,156 +357,77 @@ export const ContractsSection = () => {
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[60vh]">
-            <div className="space-y-3 pr-4">
-              {contracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className="p-3 sm:p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                >
-                  {/* Contract Info */}
-                  <div className="flex items-start gap-2 mb-3">
-                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm sm:text-base break-words mb-1">
-                        {contract.title}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm text-muted-foreground">
-                        {getStatusBadge(contract.status)}
-                        <span>
-                          {contract.contractor_name && `${contract.contractor_name} • `}
-                          {format(
-                            new Date(contract.created_at),
-                            "d MMMM yyyy",
-                            { locale: i18n.language === 'tr' ? tr : undefined }
-                          )}
-                        </span>
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {contracts.map((contract) => (
+              <div
+                key={contract.id}
+                onClick={() => {
+                  setSelectedContract(contract.id);
+                  setIsEditing(false);
+                  setEditContent("");
+                }}
+                className="rounded-lg border bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+              >
+                {/* Card Header */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-start gap-2 mb-2">
+                    <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <h3 className="font-semibold text-base break-words flex-1">
+                      {contract.title}
+                    </h3>
                   </div>
-
-                  {/* Action Buttons */}
+                  {contract.contractor_name && (
+                    <p className="text-xs text-muted-foreground mb-2">{contract.contractor_name}</p>
+                  )}
                   <div className="flex items-center gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-2"
-                          onClick={() => {
-                            setSelectedContract(contract.id);
-                            setIsEditing(false);
-                            setEditContent("");
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="text-xs sm:text-sm">{t("contract.view") || "Görüntüle"}</span>
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent 
-                        className="w-[95vw] sm:max-w-[840px] h-[90vh] flex flex-col overflow-hidden p-0"
-                        aria-describedby="contract-content-description"
-                      >
-                        <DialogHeader className="flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b">
-                          <div className="flex items-start justify-between gap-2">
-                            <DialogTitle className="flex-1 text-sm sm:text-base break-words pr-2">
-                              {contract.title}
-                            </DialogTitle>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {!isEditing && isPremium && (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  onClick={() => handleEditStart(contract)} 
-                                  className="gap-1 text-xs sm:text-sm h-8 px-2 sm:px-3"
-                                >
-                                  ✏️ <span className="hidden sm:inline">{t("common.edit")}</span>
-                                </Button>
-                              )}
-                              {isEditing && (
-                                <>
-                                  <Button 
-                                    size="sm" 
-                                    variant="default" 
-                                    onClick={() => handleEditSave(contract.id)} 
-                                    disabled={isSaving} 
-                                    className="gap-1 text-xs h-8 px-2"
-                                  >
-                                    <Save className="h-3 w-3 sm:h-4 sm:w-4" />
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    onClick={handleEditCancel} 
-                                    disabled={isSaving}
-                                    className="text-xs h-8 px-2"
-                                  >
-                                    {t("common.cancel")}
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </DialogHeader>
-                        <span id="contract-content-description" className="sr-only">
-                          {t("contract.viewAndEdit") || "Sözleşme içeriğini görüntüleyin ve düzenleyin"}
-                        </span>
-                        {isEditing ? (
-                          <textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-0 bg-white dark:bg-slate-950 font-mono text-xs sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Sözleşme metnini düzenleyin..."
-                          />
-                        ) : (
-                          <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
-                            <div className="px-4 sm:px-6 py-3 sm:py-4">
-                              <div 
-                                className="prose prose-xs sm:prose-sm dark:prose-invert max-w-full break-words"
-                                style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word' }}
-                                dangerouslySetInnerHTML={{ __html: mdToSafeHtml(contract.content) }} 
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {!isEditing && (
-                          <div className="flex flex-col sm:flex-row justify-end gap-2 flex-shrink-0 px-4 sm:px-6 py-3 border-t bg-muted/20">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDownloadPDF(contract)}
-                              className="gap-2 w-full sm:w-auto justify-center"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="text-xs sm:text-sm">{t("contract.pdfDownload")}</span>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDownloadDoc(contract)}
-                              className="gap-2 w-full sm:w-auto justify-center"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="text-xs sm:text-sm">{t("contract.wordDownload")}</span>
-                            </Button>
-                          </div>
-                        )}
-                      </DialogContent>
-                    </Dialog>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(contract.id)}
-                      className="text-destructive hover:text-destructive px-3 flex-shrink-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {getStatusBadge(contract.status)}
                   </div>
                 </div>
-              ))}
+
+                {/* Card Content */}
+                <div className="p-4 flex-1 space-y-3">
+                  <div className="text-sm text-muted-foreground">
+                    <p className="text-xs font-medium mb-1">Tarih</p>
+                    <p>
+                      {format(
+                        new Date(contract.created_at),
+                        "d MMMM yyyy",
+                        { locale: i18n.language === 'tr' ? tr : undefined }
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card Footer - Actions */}
+                <div className="p-4 border-t border-border flex items-center gap-2 bg-muted/30">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedContract(contract.id);
+                      setIsEditing(false);
+                      setEditContent("");
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="text-xs">{t("contract.view") || "Görüntüle"}</span>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(contract.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="text-xs">{t("common.delete")}</span>
+                  </Button>
+                </div>
+              </div>
+            ))}
             </div>
-          </ScrollArea>
         )}
       </CardContent>
 
@@ -527,6 +448,112 @@ export const ContractsSection = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Contract View/Edit Dialog */}
+      {selectedContract && (
+        <Dialog open={!!selectedContract} onOpenChange={(open) => !open && setSelectedContract(null)}>
+          <DialogContent 
+            className="w-[95vw] sm:max-w-[840px] h-[90vh] flex flex-col overflow-hidden p-0"
+            aria-describedby="contract-content-description"
+          >
+            {contracts.find(c => c.id === selectedContract) && (
+              <>
+                <DialogHeader className="flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b">
+                  <div className="flex items-start justify-between gap-2">
+                    <DialogTitle className="flex-1 text-sm sm:text-base break-words pr-2">
+                      {contracts.find(c => c.id === selectedContract)?.title}
+                    </DialogTitle>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {!isEditing && isPremium && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => {
+                            const contract = contracts.find(c => c.id === selectedContract);
+                            if (contract) handleEditStart(contract);
+                          }}
+                          className="gap-1 text-xs sm:text-sm h-8 px-2 sm:px-3"
+                        >
+                          ✏️ <span className="hidden sm:inline">{t("common.edit")}</span>
+                        </Button>
+                      )}
+                      {isEditing && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="default" 
+                            onClick={() => {
+                              if (selectedContract) handleEditSave(selectedContract);
+                            }}
+                            disabled={isSaving} 
+                            className="gap-1 text-xs h-8 px-2"
+                          >
+                            <Save className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={handleEditCancel} 
+                            disabled={isSaving}
+                            className="text-xs h-8 px-2"
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </DialogHeader>
+                <span id="contract-content-description" className="sr-only">
+                  {t("contract.viewAndEdit") || "Sözleşme içeriğini görüntüleyin ve düzenleyin"}
+                </span>
+                {isEditing ? (
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-0 bg-white dark:bg-slate-950 font-serif text-xs sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Sözleşme metnini düzenleyin..."
+                  />
+                ) : (
+                  <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 whitespace-pre-wrap break-words font-serif leading-relaxed">
+                      <p className="text-xs sm:text-sm text-foreground">{cleanMarkdown(contracts.find(c => c.id === selectedContract)?.content || "")}</p>
+                    </div>
+                  </div>
+                )}
+                {!isEditing && (
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 flex-shrink-0 px-4 sm:px-6 py-3 border-t bg-muted/20">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const contract = contracts.find(c => c.id === selectedContract);
+                        if (contract) handleDownloadPDF(contract);
+                      }}
+                      className="gap-2 w-full sm:w-auto justify-center"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{t("contract.pdfDownload")}</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const contract = contracts.find(c => c.id === selectedContract);
+                        if (contract) handleDownloadDoc(contract);
+                      }}
+                      className="gap-2 w-full sm:w-auto justify-center"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{t("contract.wordDownload")}</span>
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 };

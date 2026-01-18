@@ -34,9 +34,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X } from "lucide-react";
+import { Upload, X, ChevronDown } from "lucide-react";
 
 // Sayısal alanlarda başlangıçta "0" görünmesini engellemek için
 // boş değerleri `undefined` yapıp kullanıcıyı girdi girmeye zorlarız.
@@ -48,7 +54,7 @@ const numberRequired = (min = 0, max?: number) =>
       : z.coerce.number({ invalid_type_error: "Gerekli" }).min(min)
   );
 
-const getFormSchema = (t: any) => {
+const getFormSchema = (t: any, isEditing: boolean = false) => {
   const today = new Date().toISOString().split('T')[0];
   
   return z.object({
@@ -59,7 +65,7 @@ const getFormSchema = (t: any) => {
     endDate: z.string()
       .optional(),
     assignedTeam: z.array(z.string()),
-    customerId: z.string().optional(),
+    customerId: z.string().min(1, t("validation.required") || "Müşteri seçilmelidir"),
     status: z.enum(["planning", "active", "completed"]),
     progress: z.coerce.number().min(0).max(100).default(0),
     budget: z.coerce.number().min(0).default(0),
@@ -67,17 +73,15 @@ const getFormSchema = (t: any) => {
     revenue: z.coerce.number().min(0).default(0),
     photos: z.array(z.string()).optional(),
   }).refine((data) => {
-    // Status completed ise tarih kısıtlaması yoktur
-    if (data.status === "completed") return true;
-    // Diğer durumlar için startDate bugünden eski olamaz
+    // Editing mode'da veya planning değilse tarih kontrolü yapma
+    if (isEditing || data.status !== "planning") return true;
     return data.startDate >= today;
   }, {
     message: "Başlangıç tarihi bugünün tarihinden eski olamaz",
     path: ["startDate"]
   }).refine((data) => {
-    // Status completed ise tarih kısıtlaması yoktur
-    if (data.status === "completed") return true;
-    // Diğer durumlar için endDate bugünden eski olamaz
+    // Editing mode'da veya planning değilse tarih kontrolü yapma
+    if (isEditing || data.status !== "planning") return true;
     return !data.endDate || data.endDate >= today;
   }, {
     message: "Bitiş tarihi bugünün tarihinden eski olamaz",
@@ -140,7 +144,8 @@ export const ProjectForm = ({
   const PHOTO_DEBUG = import.meta.env.DEV;
   
   const remainingPhotoSlots = maxPhotos - photoUrls.length;
-  const formSchema = getFormSchema(t);
+  const isEditing = !!defaultValues;
+  const formSchema = getFormSchema(t, isEditing);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -320,7 +325,10 @@ export const ProjectForm = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+      <DialogContent 
+        className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -382,33 +390,51 @@ export const ProjectForm = ({
               <FormField
                 control={form.control}
                 name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("project.startDate")}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date" 
-                        key={`startDate-${selectedStatus}`}
-                        {...field}
-                        min={selectedStatus === "completed" ? "" : new Date().toISOString().split('T')[0]}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const maxDate = new Date();
+                  maxDate.setFullYear(maxDate.getFullYear() + 10);
+                  const maxDateStr = maxDate.toISOString().split('T')[0];
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>{t("project.startDate")}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          key={`startDate-${selectedStatus}`}
+                          {...field}
+                          min={isEditing || selectedStatus === "completed" ? "" : today}
+                          max={maxDateStr}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               <FormField
                 control={form.control}
                 name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("project.endDate")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const maxDate = new Date();
+                  maxDate.setFullYear(maxDate.getFullYear() + 10);
+                  const maxDateStr = maxDate.toISOString().split('T')[0];
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>{t("project.endDate")}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field}
+                          max={maxDateStr}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -419,14 +445,13 @@ export const ProjectForm = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("project.customer")}</FormLabel>
-                  <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={t("project.selectCustomer")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">{t("project.noCustomer")}</SelectItem>
                       {customers.map((customer) => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.name}
@@ -439,34 +464,80 @@ export const ProjectForm = ({
               )}
             />
 
-            {/* Team Member Selection */}
+            {/* Team Member Selection - Dropdown with Multiple Select */}
             <FormField
               control={form.control}
               name="assignedTeam"
               render={() => (
                 <FormItem>
-                  <FormLabel>{t("project.assignedTeam")}</FormLabel>
-                  <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
-                    {teamMembers.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t("project.noTeamMembers")}</p>
-                    ) : (
-                      teamMembers.map((member) => (
-                        <div key={member.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`team-${member.id}`}
-                            checked={selectedTeam.includes(member.id)}
-                            onCheckedChange={() => toggleTeamMember(member.id)}
-                          />
-                          <label
-                            htmlFor={`team-${member.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                          >
+                  <FormLabel>{t("project.assignedMasters")}</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between h-10 px-3 py-2"
+                        type="button"
+                      >
+                        <span className="truncate">
+                          {selectedTeam.length === 0 
+                            ? t("project.selectMasters")
+                            : selectedTeam.length === 1
+                            ? teamMembers.find(m => m.id === selectedTeam[0])?.name || t("project.selectMasters")
+                            : `${selectedTeam.length} ${t("project.masterSelected") || "usta seçildi"}`}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
+                        {teamMembers.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-6">{t("project.noMasters")}</p>
+                        ) : (
+                          teamMembers.map((member) => (
+                            <div 
+                              key={member.id} 
+                              className="flex items-center space-x-2 p-2 hover:bg-muted rounded cursor-pointer"
+                              onClick={() => toggleTeamMember(member.id)}
+                            >
+                              <Checkbox
+                                id={`team-${member.id}`}
+                                checked={selectedTeam.includes(member.id)}
+                                onCheckedChange={() => toggleTeamMember(member.id)}
+                              />
+                              <label
+                                htmlFor={`team-${member.id}`}
+                                className="text-sm font-medium flex-1 cursor-pointer"
+                              >
+                                {member.name}
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Selected Team Members Display */}
+                  {selectedTeam.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectedTeam.map(memberId => {
+                        const member = teamMembers.find(m => m.id === memberId);
+                        return member ? (
+                          <Badge key={memberId} variant="secondary" className="gap-1">
                             {member.name}
-                          </label>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                            <button
+                              type="button"
+                              onClick={() => toggleTeamMember(memberId)}
+                              className="ml-1 hover:bg-destructive/20 rounded px-1"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -479,7 +550,7 @@ export const ProjectForm = ({
                 <FormItem>
                   <FormLabel>{t("project.progress")} (%)</FormLabel>
                   <FormControl>
-                    <Input type="number" min="0" max="100" {...field} />
+                    <Input type="number" min="0" max="100" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

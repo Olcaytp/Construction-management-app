@@ -137,7 +137,10 @@ export const TaskForm = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -159,47 +162,52 @@ export const TaskForm = ({
             <FormField
               control={form.control}
               name="project"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('task.project')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('task.selectProject')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {projects
-                        .filter((project) => {
-                          const taskCount = tasksByProject[project.id] || 0;
-                          const isAtLimit = !hasPremiumAccess && taskCount >= maxTasksPerProject;
-                          return !isAtLimit;
-                        })
-                        .map((project) => {
-                          const taskCount = tasksByProject[project.id] || 0;
-                          return (
-                            <SelectItem key={project.id} value={project.id}>
-                              {project.title}
-                              {taskCount > 0 && ` (${taskCount}/${maxTasksPerProject})`}
-                            </SelectItem>
-                          );
-                        })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selectedProject = projects.find((p) => p.id === field.value);
+                return (
+                  <FormItem>
+                    <FormLabel>{t('task.project')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('task.selectProject')}>
+                            {selectedProject ? selectedProject.title : t('task.selectProject')}
+                          </SelectValue>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {projects
+                          .filter((project) => {
+                            const taskCount = tasksByProject[project.id] || 0;
+                            const isAtLimit = !hasPremiumAccess && taskCount >= maxTasksPerProject;
+                            return !isAtLimit;
+                          })
+                          .map((project) => {
+                            const taskCount = tasksByProject[project.id] || 0;
+                            return (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.title}
+                                {taskCount > 0 && ` (${taskCount}${maxTasksPerProject === Infinity ? '' : `/${maxTasksPerProject}`})`}
+                              </SelectItem>
+                            );
+                          })}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="assignee"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('task.assignee')}</FormLabel>
+                  <FormLabel>{t('task.master')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={t('task.selectAssignee')} />
+                        <SelectValue placeholder={t('task.selectMaster')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -245,9 +253,9 @@ export const TaskForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="pending">{t('task.pending')}</SelectItem>
-                      <SelectItem value="in-progress">{t('task.inProgress')}</SelectItem>
-                      <SelectItem value="completed">{t('task.completed')}</SelectItem>
+                      <SelectItem value="pending">{t('task.status.pending')}</SelectItem>
+                      <SelectItem value="in-progress">{t('task.status.in-progress')}</SelectItem>
+                      <SelectItem value="completed">{t('task.status.completed')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -267,9 +275,9 @@ export const TaskForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="low">{t('task.low')}</SelectItem>
-                      <SelectItem value="medium">{t('task.medium')}</SelectItem>
-                      <SelectItem value="high">{t('task.high')}</SelectItem>
+                      <SelectItem value="low">{t('task.priority.low')}</SelectItem>
+                      <SelectItem value="medium">{t('task.priority.medium')}</SelectItem>
+                      <SelectItem value="high">{t('task.priority.high')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

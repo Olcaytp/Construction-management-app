@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -62,6 +69,20 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   }, [timesheets, selectedMemberId]);
 
   const selectedMember = selectedMemberId ? memberMap[selectedMemberId] : null;
+
+  // Always show totals for all team members (not filtered)
+  const allTotals = useMemo(() => {
+    return timesheets.reduce(
+      (acc, entry) => {
+        acc.hours += entry.hours_worked;
+        acc.overtime += entry.overtime_hours;
+        acc.leave += entry.leave_hours;
+        acc.payable += entry.payable_amount;
+        return acc;
+      },
+      { hours: 0, overtime: 0, leave: 0, payable: 0 }
+    );
+  }, [timesheets]);
 
   const currencyInfo = useMemo(() => {
     // Use profile currency first, fallback to language
@@ -128,7 +149,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
           <CardHeader className="pb-2">
             <CardDescription>{t("timesheet.metrics.hours")}</CardDescription>
             <CardTitle className="text-2xl">
-              {totals.hours.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
+              {allTotals.hours.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -136,7 +157,7 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
           <CardHeader className="pb-2">
             <CardDescription>{t("timesheet.metrics.overtime")}</CardDescription>
             <CardTitle className="text-2xl text-amber-600">
-              {totals.overtime.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
+              {allTotals.overtime.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -144,14 +165,14 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
           <CardHeader className="pb-2">
             <CardDescription>{t("timesheet.metrics.leave")}</CardDescription>
             <CardTitle className="text-2xl text-blue-600">
-              {totals.leave.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
+              {allTotals.leave.toLocaleString(i18n.language)} {t("timesheet.metrics.hoursUnit")}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>{t("timesheet.metrics.payable")}</CardDescription>
-            <CardTitle className="text-2xl text-green-600">{formatMoney(totals.payable)}</CardTitle>
+            <CardTitle className="text-2xl text-green-600">{formatMoney(allTotals.payable)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -169,18 +190,18 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
               </p>
             ) : (
               <div className="flex flex-col gap-3">
-                <select
-                  value={selectedMemberId || ""}
-                  onChange={(e) => setSelectedMemberId(e.target.value || null)}
-                  className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Ekip üyesi seçin</option>
-                  {teamMembers.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name} ({member.specialty})
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedMemberId || ""} onValueChange={(value) => setSelectedMemberId(value || null)}>
+                  <SelectTrigger className="w-full rounded-full border-2 border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 dark:border-orange-800 dark:hover:border-orange-600 dark:hover:bg-orange-950/20 transition-all bg-background text-foreground">
+                    <SelectValue placeholder="Ekip üyesi seçin" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-lg">
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name} ({member.specialty})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </CardContent>
