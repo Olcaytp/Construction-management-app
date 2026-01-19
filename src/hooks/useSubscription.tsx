@@ -10,14 +10,21 @@ export const PLAN_LIMITS = {
     maxCustomers: 2,
     maxTeamMembers: 2,
     maxTasksPerProject: 3,
-    maxPhotosPerProject: 2,
+    maxPhotosPerProject: 3, // Ücretsiz planda fotoğraf limiti 3
+  },
+  standard: {
+    maxProjects: 15,
+    maxCustomers: 50,
+    maxTeamMembers: 10,
+    maxTasksPerProject: 50,
+    maxPhotosPerProject: 5, // Standart abonelikte fotoğraf limiti 5
   },
   premium: {
     maxProjects: Infinity,
     maxCustomers: Infinity,
     maxTeamMembers: Infinity,
     maxTasksPerProject: Infinity,
-    maxPhotosPerProject: 5,
+    maxPhotosPerProject: 5, // Premiumda fotoğraf limiti 5
   },
 } as const;
 
@@ -32,8 +39,8 @@ export const SUBSCRIPTION_TIERS = {
       "📊 Aktif Proje: 2 Adet",
       "👥 Müşteri: 2 Adet",
       "👨‍💼 Ekip Üyesi: 2 Kişi",
-      "✓ Görev Sayısı: 5 Görev / Proje",
-      "📸 Fotoğraf: 5 Fotoğraf / Proje",
+      "✓ Görev Sayısı: 3 Görev / Proje",
+      "📸 Fotoğraf: 3 Fotoğraf / Proje",
       "🤖 AI Özellikleri: Temel Öneriler",
       "📄 Raporlama: Yok",
       "📧 E-posta desteği"
@@ -51,7 +58,7 @@ export const SUBSCRIPTION_TIERS = {
       "👥 Müşteri: 50 Adet",
       "👨‍💼 Ekip Üyesi: 10 Kişi",
       "✓ Görev Sayısı: 50 Görev / Proje",
-      "📸 Fotoğraf: 10 Fotoğraf / Proje",
+      "📸 Fotoğraf: 5 Fotoğraf / Proje",
       "🤖 AI Özellikleri: AI Sözleşme Şablonları",
       "📄 Raporlama: PDF Çıktısı",
       "⭐ Öncelikli destek"
@@ -71,7 +78,7 @@ export const SUBSCRIPTION_TIERS = {
       "👥 Müşteri: 250 Adet",
       "👨‍💼 Ekip Üyesi: 40 Kişi",
       "✓ Görev Sayısı: 250 Görev / Proje",
-      "📸 Fotoğraf: 100 Fotoğraf / Proje",
+      "📸 Fotoğraf: 5 Fotoğraf / Proje",
       "🤖 AI Özellikleri: Full AI Maliyet Analizi",
       "📄 Raporlama: Excel + Kurumsal Logolu PDF",
       "🏆 VIP destek"
@@ -86,6 +93,7 @@ interface SubscriptionState {
   subscriptionEnd: string | null;
   loading: boolean;
   error: string | null;
+  tier?: string | null; // Kullanıcı planı
 }
 
 interface SubscriptionContextType extends SubscriptionState {
@@ -93,6 +101,7 @@ interface SubscriptionContextType extends SubscriptionState {
   createCheckout: (priceId: string) => Promise<string | null>;
   openCustomerPortal: () => Promise<string | null>;
   isPremium: boolean;
+  subscription: { tier: string | null };
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -106,6 +115,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     subscriptionEnd: null,
     loading: true,
     error: null,
+        tier: null, // Ensure tier is initialized
   });
 
   // Always fetch a fresh JWT from Supabase Auth before invoking protected Edge Functions
@@ -162,6 +172,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         subscriptionEnd: data?.subscription_end || null,
         loading: false,
         error: null,
+            tier: data?.tier || null, // Ensure tier is set from API response
       });
     } catch (error) {
       console.error("Error checking subscription:", error);
@@ -286,6 +297,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         createCheckout,
         openCustomerPortal,
         isPremium,
+        subscription: { tier: state.tier }, // Index.tsx için subscription.tier
       }}
     >
       {children}

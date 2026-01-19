@@ -94,8 +94,10 @@ const Index = () => {
     };
 
   const { user, signOut } = useAuth();
-  const { isPremium } = useSubscription();
+  const { isPremium, subscription } = useSubscription();
   const { isAdmin } = useAdmin();
+  // hasPremiumAccess: premium, admin veya standard plan için true
+  const hasPremiumAccess = isPremium || isAdmin || subscription?.tier === 'standard';
 
   // Scroll to top on component mount
   useEffect(() => {
@@ -136,8 +138,13 @@ const Index = () => {
   ];
 
   // Plan limitleri - Admin'ler premium özelliklerine sahip
-  const hasPremiumAccess = isPremium || isAdmin;
-  const currentLimits = hasPremiumAccess ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
+  // Standart ve Premium planlar için aynı fotoğraf limiti kullanılacak
+  let currentLimits: any = PLAN_LIMITS.free;
+  if (isPremium || isAdmin) {
+    currentLimits = PLAN_LIMITS.premium;
+  } else if (subscription?.tier === 'standard') {
+    currentLimits = PLAN_LIMITS.standard;
+  }
   const canAddProject = projects.length < currentLimits.maxProjects;
   const canAddTeamMember = teamMembers.length < currentLimits.maxTeamMembers;
   const canAddCustomer = customers.length < currentLimits.maxCustomers;
