@@ -52,7 +52,12 @@ export const ReportsSection = () => {
   };
 
   const exportToPDF = async () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: false,
+    });
     const pageWidth = doc.internal.pageSize.getWidth();
 
     const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
@@ -66,6 +71,7 @@ export const ReportsSection = () => {
     };
 
     // Try to load a Turkish-capable TTF from public/fonts/DejaVuSans.ttf
+    let fontLoaded = false;
     try {
       const fontUrl = '/fonts/DejaVuSans.ttf';
       const res = await fetch(fontUrl);
@@ -73,13 +79,20 @@ export const ReportsSection = () => {
         const buf = await res.arrayBuffer();
         const base64 = arrayBufferToBase64(buf);
         (doc as any).addFileToVFS('DejaVuSans.ttf', base64);
-        (doc as any).addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal');
-        doc.setFont('DejaVuSans');
+        // Add font with Identity-H encoding for Unicode support (Turkish characters)
+        (doc as any).addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal', 'Identity-H');
+        doc.setFont('DejaVuSans', 'normal');
+        fontLoaded = true;
       } else {
         console.warn('Font not found at', fontUrl);
       }
     } catch (fontErr) {
       console.warn('Failed to load font for PDF:', fontErr);
+    }
+
+    // If font not loaded, try helvetica fallback
+    if (!fontLoaded) {
+      doc.setFont('helvetica', 'normal');
     }
 
     // Title
@@ -93,6 +106,7 @@ export const ReportsSection = () => {
 
     // Overview Stats
     doc.setFontSize(14);
+    if (fontLoaded) doc.setFont('DejaVuSans', 'normal');
     doc.text("Genel Özet", 14, yPos);
     yPos += 8;
 
@@ -105,13 +119,15 @@ export const ReportsSection = () => {
             ['Toplam Proje', totalProjects.toString()],
             ['Aktif Proje', activeProjects.toString()],
             ['Tamamlanan Proje', completedProjects.toString()],
-            ['Toplam GöREV', totalTasks.toString()],
-            ['Tamamlanan GöREV', completedTasks.toString()],
+            ['Toplam Görev', totalTasks.toString()],
+            ['Tamamlanan Görev', completedTasks.toString()],
             ['Görev Tamamlama Oranı', `${taskCompletionRate}%`],
             ['Ekip Üyesi Sayısı', teamMembers.length.toString()],
           ],
           theme: 'striped',
-          headStyles: { fillColor: [59, 130, 246] },
+          headStyles: { fillColor: [59, 130, 246], font: 'DejaVuSans', fontStyle: 'normal' },
+          bodyStyles: { font: 'DejaVuSans', fontStyle: 'normal' },
+          didik: 'DejaVuSans',
         });
       } else if ((doc as any).autoTable) {
         (doc as any).autoTable({
@@ -121,13 +137,15 @@ export const ReportsSection = () => {
             ['Toplam Proje', totalProjects.toString()],
             ['Aktif Proje', activeProjects.toString()],
             ['Tamamlanan Proje', completedProjects.toString()],
-            ['Toplam GöREV', totalTasks.toString()],
-            ['Tamamlanan GöREV', completedTasks.toString()],
+            ['Toplam Görev', totalTasks.toString()],
+            ['Tamamlanan Görev', completedTasks.toString()],
             ['Görev Tamamlama Oranı', `${taskCompletionRate}%`],
             ['Ekip Üyesi Sayısı', teamMembers.length.toString()],
           ],
           theme: 'striped',
-          headStyles: { fillColor: [59, 130, 246] },
+          headStyles: { fillColor: [59, 130, 246], font: 'DejaVuSans', fontStyle: 'normal' },
+          bodyStyles: { font: 'DejaVuSans', fontStyle: 'normal' },
+          didik: 'DejaVuSans',
         });
       } else {
         throw new Error('autoTable not available');
@@ -142,6 +160,7 @@ export const ReportsSection = () => {
 
     // Financial Summary
     doc.setFontSize(14);
+    if (fontLoaded) doc.setFont('DejaVuSans', 'normal');
     doc.text("Finansal Özet", 14, yPos);
     yPos += 8;
 
@@ -149,7 +168,7 @@ export const ReportsSection = () => {
       if (typeof (autoTable as any) === 'function') {
         (autoTable as any)(doc, {
           startY: yPos,
-          head: [['Kategori', 'Tutar (₺)']],
+          head: [['Kategori', 'Tutar']],
           body: [
             ['Toplam Bütçe', totalBudget.toLocaleString('tr-TR')],
             ['Toplam Gelir', totalRevenue.toLocaleString('tr-TR')],
@@ -158,12 +177,13 @@ export const ReportsSection = () => {
             ['Kâr Marjı', `${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%`],
           ],
           theme: 'striped',
-          headStyles: { fillColor: [34, 197, 94] },
+          headStyles: { fillColor: [34, 197, 94], font: 'DejaVuSans' },
+          bodyStyles: { font: 'DejaVuSans' },
         });
       } else if ((doc as any).autoTable) {
         (doc as any).autoTable({
           startY: yPos,
-          head: [['Kategori', 'Tutar (₺)']],
+          head: [['Kategori', 'Tutar']],
           body: [
             ['Toplam Bütçe', totalBudget.toLocaleString('tr-TR')],
             ['Toplam Gelir', totalRevenue.toLocaleString('tr-TR')],
@@ -172,7 +192,8 @@ export const ReportsSection = () => {
             ['Kâr Marjı', `${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%`],
           ],
           theme: 'striped',
-          headStyles: { fillColor: [34, 197, 94] },
+          headStyles: { fillColor: [34, 197, 94], font: 'DejaVuSans' },
+          bodyStyles: { font: 'DejaVuSans' },
         });
       } else {
         throw new Error('autoTable not available');
@@ -188,6 +209,7 @@ export const ReportsSection = () => {
     // Project Details
     if (projects.length > 0) {
       doc.setFontSize(14);
+      if (fontLoaded) doc.setFont('DejaVuSans', 'normal');
       doc.text("Proje Detayları", 14, yPos);
       yPos += 8;
 
@@ -195,7 +217,7 @@ export const ReportsSection = () => {
         if (typeof (autoTable as any) === 'function') {
           (autoTable as any)(doc, {
             startY: yPos,
-            head: [['Proje', 'Durum', 'İlerleme', 'Bütçe (₺)', 'Maliyet (₺)', 'Gelir (₺)']],
+            head: [['Proje', 'Durum', 'İlerleme', 'Bütçe', 'Maliyet', 'Gelir']],
             body: projects.map(p => [
               p.title.length > 20 ? p.title.substring(0, 20) + '...' : p.title,
               p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede',
@@ -205,15 +227,17 @@ export const ReportsSection = () => {
               (p.revenue || 0).toLocaleString('tr-TR'),
             ]),
             theme: 'striped',
-            headStyles: { fillColor: [147, 51, 234] },
+            headStyles: { fillColor: [147, 51, 234], font: 'DejaVuSans', fontStyle: 'normal' },
+            bodyStyles: { font: 'DejaVuSans', fontStyle: 'normal' },
             columnStyles: {
               0: { cellWidth: 40 },
             },
+            didik: 'DejaVuSans',
           });
         } else if ((doc as any).autoTable) {
           (doc as any).autoTable({
             startY: yPos,
-            head: [['Proje', 'Durum', 'İlerleme', 'Bütçe (₺)', 'Maliyet (₺)', 'Gelir (₺)']],
+            head: [['Proje', 'Durum', 'İlerleme', 'Bütçe', 'Maliyet', 'Gelir']],
             body: projects.map(p => [
               p.title.length > 20 ? p.title.substring(0, 20) + '...' : p.title,
               p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede',
@@ -223,10 +247,12 @@ export const ReportsSection = () => {
               (p.revenue || 0).toLocaleString('tr-TR'),
             ]),
             theme: 'striped',
-            headStyles: { fillColor: [147, 51, 234] },
+            headStyles: { fillColor: [147, 51, 234], font: 'DejaVuSans', fontStyle: 'normal' },
+            bodyStyles: { font: 'DejaVuSans', fontStyle: 'normal' },
             columnStyles: {
               0: { cellWidth: 40 },
             },
+            didik: 'DejaVuSans',
           });
         } else {
           throw new Error('autoTable not available');
@@ -243,12 +269,13 @@ export const ReportsSection = () => {
     // Team Members
     if (teamMembers.length > 0 && yPos < 250) {
       doc.setFontSize(14);
+      if (fontLoaded) doc.setFont('DejaVuSans', 'normal');
       doc.text("Ekip Üyeleri", 14, yPos);
       yPos += 8;
 
       autoTable(doc, {
         startY: yPos,
-        head: [['İsim', 'Uzmanlık', 'Günlük Ücret (₺)', 'Atanan Görev']],
+        head: [['İsim', 'Uzmanlık', 'Günlük Ücret', 'Atanan Görev']],
         body: teamMembers.map(m => {
           const memberTasks = tasks.filter(t => t.assignedTo === m.id);
           return [
@@ -259,7 +286,9 @@ export const ReportsSection = () => {
           ];
         }),
         theme: 'striped',
-        headStyles: { fillColor: [249, 115, 22] },
+        headStyles: { fillColor: [249, 115, 22], font: 'DejaVuSans', fontStyle: 'normal' },
+        bodyStyles: { font: 'DejaVuSans', fontStyle: 'normal' },
+        didik: 'DejaVuSans',
       });
     }
 
@@ -294,7 +323,7 @@ export const ReportsSection = () => {
       ];
 
       if (projects.length > 0) {
-        sections.push(`PROJE DETAYLARı\n`);
+        sections.push(`PROJE DETAYLARI\n`);
         projects.forEach(p => {
           sections.push(`Proje: ${p.title}`);
           sections.push(`  Durum: ${p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede'}`);
@@ -510,24 +539,24 @@ ${teamMembers.map(m => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold">{t('app.reports')}</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">{t('app.reports')}</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
             {hasPremiumAccess ? t('reports.subtitlePremium') : t('reports.subtitleBasic')}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           {hasPremiumAccess && (
-            <Badge className="bg-primary gap-1 w-fit">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${isAdmin ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200' : 'bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-200'}`}>
               <Crown className="h-3 w-3" />
               {isAdmin ? t('reports.admin') : t('reports.premium')}
-            </Badge>
+            </div>
           )}
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button onClick={exportToPDF} variant="outline" size="sm" className="gap-2 text-xs">
+            <Button onClick={exportToPDF} variant="outline" size="sm" className="gap-2 text-xs hover:bg-blue-50 dark:hover:bg-blue-950">
               <Download className="h-4 w-4" />
               {t('reports.downloadPDF')}
             </Button>
-            <Button onClick={exportToWord} variant="outline" size="sm" className="gap-2 text-xs">
+            <Button onClick={exportToWord} variant="outline" size="sm" className="gap-2 text-xs hover:bg-orange-50 dark:hover:bg-orange-950">
               <Download className="h-4 w-4" />
               {t('reports.downloadWord')}
             </Button>
@@ -537,72 +566,48 @@ ${teamMembers.map(m => {
 
       {/* Basic Reports - Available for all */}
       <div className="space-y-3 sm:space-y-4">
-        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+        <h3 className="text-base sm:text-lg font-bold flex items-center gap-2 text-foreground">
           <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
           {t('reports.basicReports')}
         </h3>
         
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('reports.totalProjects')}</CardDescription>
-              <CardTitle className="text-3xl">{totalProjects}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {t('reports.projectDetail', { active: activeProjects, completed: completedProjects })}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex flex-wrap gap-4 sm:gap-6 items-center justify-center p-4 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <FolderKanban className="h-5 w-5 text-orange-500" />
+            <span className="text-sm font-medium text-muted-foreground">{t('reports.totalProjects')}:</span>
+            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalProjects}</span>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('reports.taskCompletion')}</CardDescription>
-              <CardTitle className="text-3xl">{taskCompletionRate}%</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={taskCompletionRate} className="h-2" />
-              <div className="text-xs text-muted-foreground mt-1">
-                {t('reports.taskCount', { completed: completedTasks, total: totalTasks })}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <ListTodo className="h-5 w-5 text-blue-500" />
+            <span className="text-sm font-medium text-muted-foreground">Aktif Görevler:</span>
+            <span className="text-lg font-bold text-green-600 dark:text-green-400">{inProgressTasks}</span>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('reports.teamMembers')}</CardDescription>
-              <CardTitle className="text-3xl">{teamMembers.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {t('reports.teamDetail')}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-green-500" />
+            <span className="text-sm font-medium text-muted-foreground">Tamamlanan Görevler:</span>
+            <span className="text-lg font-bold text-green-600 dark:text-green-400">{completedTasks}</span>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('reports.totalBudget')}</CardDescription>
-              <CardTitle className="text-3xl">₺{(totalBudget / 1000).toFixed(0)}K</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {t('reports.allProjects')}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-orange-500" />
+            <span className="text-sm font-medium text-muted-foreground">{t('reports.teamMembers')}:</span>
+            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">{teamMembers.length}</span>
+          </div>
         </div>
 
         {/* Task Status Chart - Basic */}
-        <Card>
+        <Card className="shadow-sm lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">{t('reports.taskStatusSummary')}</CardTitle>
+            <CardTitle className="text-lg font-bold">{t('reports.taskStatusSummary')}</CardTitle>
             <CardDescription>{t('reports.taskStatusDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+              <div className="lg:col-span-1 h-48 lg:h-auto flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
                     <Pie
                       data={taskStatusData}
                       cx="50%"
@@ -611,31 +616,49 @@ ${teamMembers.map(m => {
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
-                      // Render only percentage labels inside slices to avoid external overlap
                       label={({ percent }) => `${Math.round((percent || 0) * 100)}%`}
                       labelLine={false}
                     >
-                    {taskStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  {/* Use legend instead of long external labels to prevent collisions */}
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
+                      {taskStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="lg:col-span-2 space-y-3">
+                {taskStatusData.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-sm font-medium">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-base">{item.value}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {totalTasks > 0 ? Math.round((item.value / totalTasks) * 100) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Advanced Reports - Premium Only */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Crown className="h-5 w-5 text-amber-500" />
+      <div className="space-y-3 sm:space-y-4">
+        <h3 className="text-base sm:text-lg font-bold flex items-center gap-2 text-foreground">
+          <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
           {t('reports.advancedReports')}
           {!hasPremiumAccess && (
-            <Badge variant="outline" className="ml-2">{t('reports.premium')}</Badge>
+            <Badge variant="outline" className="ml-2 text-xs">{t('reports.premium')}</Badge>
           )}
         </h3>
 
@@ -643,12 +666,12 @@ ${teamMembers.map(m => {
           {hasPremiumAccess ? (
             <>
               {/* Project Financial Status - Single Project */}
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
                   <div className="flex flex-col gap-3">
                     <div>
-                      <CardTitle className="text-lg">{t('reports.projectFinancialAnalysis.title')}</CardTitle>
-                      <CardDescription>{t('reports.projectFinancialAnalysis.desc')}</CardDescription>
+                      <CardTitle className="text-lg font-bold">{t('reports.projectFinancialAnalysis.title')}</CardTitle>
+                      <CardDescription className="text-xs">{t('reports.projectFinancialAnalysis.desc')}</CardDescription>
                     </div>
                     <Select 
                       value={selectedProjectId || (projects.length > 0 ? projects[0]?.id : "")}
@@ -679,40 +702,38 @@ ${teamMembers.map(m => {
                         return (
                           <>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-                              <div className="bg-blue-50 dark:bg-blue-950 p-2 sm:p-3 rounded-lg">
-                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.budget')}</p>
-                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
+                              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
+                                <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.budget')}</p>
+                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
                               </div>
-                              <div className="bg-orange-50 dark:bg-orange-950 p-2 sm:p-3 rounded-lg">
-                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.cost')}</p>
-                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
+                              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg border border-orange-100 dark:border-orange-900">
+                                <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.cost')}</p>
+                                <p className="text-lg font-bold text-orange-700 dark:text-orange-300">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
                               </div>
-                              <div className="bg-green-50 dark:bg-green-950 p-2 sm:p-3 rounded-lg">
-                                <p className="text-xs text-muted-foreground mb-1">{t('reports.labels.revenue')}</p>
-                                <p className="text-base sm:text-lg font-bold">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
+                              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg border border-green-100 dark:border-green-900">
+                                <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.revenue')}</p>
+                                <p className="text-lg font-bold text-green-700 dark:text-green-300">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
                               </div>
                             </div>
                             
-                            <div className="border-t pt-3 sm:pt-4 mt-3 sm:mt-4">
-                              <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.netProfit')}</span>
-                                  <span className="text-sm sm:text-base font-semibold text-green-600">
-                                    ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString('tr-TR')}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.profitMargin')}</span>
-                                  <span className="text-sm sm:text-base font-semibold">
-                                    {currentProject.revenue && currentProject.revenue > 0
-                                      ? Math.round((((currentProject.revenue || 0) - (currentProject.actualCost || 0)) / (currentProject.revenue || 1)) * 100)
-                                      : 0}%
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-xs sm:text-sm text-muted-foreground">{t('reports.labels.projectProgress')}</span>
-                                  <span className="text-sm sm:text-base font-semibold">{currentProject.progress}%</span>
-                                </div>
+                            <div className="border-t pt-3 sm:pt-4 mt-3 sm:mt-4 space-y-3">
+                              <div className="flex justify-between items-center p-2 bg-green-50 dark:bg-green-950 rounded-lg">
+                                <span className="text-xs sm:text-sm font-medium text-muted-foreground">{t('reports.labels.netProfit')}</span>
+                                <span className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
+                                  ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString('tr-TR')}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                                <span className="text-xs sm:text-sm font-medium text-muted-foreground">{t('reports.labels.profitMargin')}</span>
+                                <span className="text-sm sm:text-base font-bold">
+                                  {currentProject.revenue && currentProject.revenue > 0
+                                    ? Math.round((((currentProject.revenue || 0) - (currentProject.actualCost || 0)) / (currentProject.revenue || 1)) * 100)
+                                    : 0}%
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                                <span className="text-xs sm:text-sm font-medium text-muted-foreground">{t('reports.labels.projectProgress')}</span>
+                                <span className="text-sm sm:text-base font-bold">{currentProject.progress}%</span>
                               </div>
                             </div>
                           </>
@@ -726,33 +747,56 @@ ${teamMembers.map(m => {
               </Card>
 
               {/* Team Performance */}
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">{t('reports.teamPerformance.title')}</CardTitle>
-                  <CardDescription>{t('reports.teamPerformance.desc')}</CardDescription>
+                  <CardTitle className="text-lg font-bold">{t('reports.teamPerformance.title')}</CardTitle>
+                  <CardDescription className="text-xs">{t('reports.teamPerformance.desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={teamPerformanceData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} width={80} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar name={t('reports.teamPerformance.completed')} dataKey="completed" fill="hsl(var(--chart-2))" />
-                        <Bar name={t('reports.teamPerformance.total')} dataKey="total" fill="hsl(var(--muted))" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {teamPerformanceData.length > 0 ? (
+                    <div className="space-y-3">
+                      {teamPerformanceData.map((member, index) => {
+                        const completionRate = member.total > 0 ? Math.round((member.completed / member.total) * 100) : 0;
+                        return (
+                          <div key={index} className="space-y-2 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs font-bold text-primary">{index + 1}</span>
+                                </div>
+                                <span className="text-sm font-semibold truncate">{member.name}</span>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <p className="text-base font-bold text-green-600 dark:text-green-400">{completionRate}%</p>
+                                <p className="text-xs text-muted-foreground">{member.completed}/{member.total}</p>
+                              </div>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all bg-gradient-to-r from-blue-500 to-green-500"
+                                style={{ width: `${completionRate}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="h-48 flex items-center justify-center border-2 border-dashed rounded-lg">
+                      <div className="text-center">
+                        <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">{t('reports.projectProgress.empty')}</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               {/* Profit Analysis */}
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">{t('reports.profitAnalysis.title')}</CardTitle>
-                  <CardDescription>{t('reports.profitAnalysis.desc')}</CardDescription>
+                  <CardTitle className="text-lg font-bold">{t('reports.profitAnalysis.title')}</CardTitle>
+                  <CardDescription className="text-xs">{t('reports.profitAnalysis.desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {(() => {
@@ -767,32 +811,35 @@ ${teamMembers.map(m => {
                     const projectCost = currentProject.actualCost || 0;
                     const projectProfit = projectRevenue - projectCost;
                     const projectMargin = projectRevenue > 0 ? Math.round((projectProfit / projectRevenue) * 100) : 0;
+                    const isProfit = projectProfit >= 0;
                     
                     return (
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <span className="text-muted-foreground">{t('reports.profitAnalysis.totalRevenue')}</span>
-                          <span className="font-bold text-green-600">₺{projectRevenue.toLocaleString('tr-TR')}</span>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-muted">
+                          <span className="text-sm font-medium text-muted-foreground">{t('reports.profitAnalysis.totalRevenue')}</span>
+                          <span className="font-bold text-green-600 dark:text-green-400">₺{projectRevenue.toLocaleString('tr-TR')}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <span className="text-muted-foreground">{t('reports.profitAnalysis.totalCost')}</span>
-                          <span className="font-bold text-orange-600">₺{projectCost.toLocaleString('tr-TR')}</span>
+                        <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-muted">
+                          <span className="text-sm font-medium text-muted-foreground">{t('reports.profitAnalysis.totalCost')}</span>
+                          <span className="font-bold text-orange-600 dark:text-orange-400">₺{projectCost.toLocaleString('tr-TR')}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                          <span className="font-medium">{t('reports.profitAnalysis.netProfit')}</span>
-                          <span className={`font-bold text-xl ${projectProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`flex justify-between items-center p-3 rounded-lg border-2 ${isProfit ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'}`}>
+                          <span className={`font-bold text-sm ${isProfit ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{t('reports.profitAnalysis.netProfit')}</span>
+                          <span className={`font-bold text-xl ${isProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             ₺{projectProfit.toLocaleString('tr-TR')}
                           </span>
                         </div>
-                        <div className="mt-4">
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{t('reports.profitAnalysis.profitMargin')}</span>
-                            <span>{projectMargin}%</span>
+                        <div className="mt-4 pt-3 border-t">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="font-medium">{t('reports.profitAnalysis.profitMargin')}</span>
+                            <span className={`font-bold ${isProfit ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>{projectMargin}%</span>
                           </div>
-                          <Progress 
-                            value={Math.max(0, projectMargin)} 
-                            className="h-2" 
-                          />
+                          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all ${isProfit ? 'bg-green-500' : 'bg-orange-500'}`}
+                              style={{ width: `${Math.max(0, Math.min(100, projectMargin))}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     );
@@ -801,10 +848,10 @@ ${teamMembers.map(m => {
               </Card>
 
               {/* Project Progress Overview - Single Project */}
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">{t('reports.projectProgress.title')}</CardTitle>
-                  <CardDescription>{t('reports.projectProgress.desc')}</CardDescription>
+                  <CardTitle className="text-lg font-bold">{t('reports.projectProgress.title')}</CardTitle>
+                  <CardDescription className="text-xs">{t('reports.projectProgress.desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {(() => {
@@ -815,29 +862,37 @@ ${teamMembers.map(m => {
                       return <p className="text-muted-foreground text-center py-4">{t('reports.projectProgress.empty')}</p>;
                     }
                     
+                    const progressPercentage = currentProject.progress || 0;
+                    const budgetUsage = currentProject.budget && currentProject.budget > 0
+                      ? Math.round(((currentProject.actualCost || 0) / currentProject.budget) * 100)
+                      : 0;
+                    
                     return (
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="font-medium">{currentProject.title}</span>
-                            <span className="font-bold">{currentProject.progress}%</span>
+                            <span className="font-medium text-sm">{currentProject.title}</span>
+                            <span className="font-bold text-sm">{progressPercentage}%</span>
                           </div>
-                          <Progress value={currentProject.progress} className="h-3" />
+                          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                            <div 
+                              className="h-full rounded-full transition-all bg-gradient-to-r from-orange-500 to-green-500"
+                              style={{ width: `${progressPercentage}%` }}
+                            />
+                          </div>
                         </div>
                         
                         <div className="border-t pt-4 space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Durum:</span>
-                            <Badge variant={currentProject.status === 'active' ? 'default' : currentProject.status === 'completed' ? 'secondary' : 'outline'}>
+                          <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                            <span className="text-sm text-muted-foreground">Durum:</span>
+                            <Badge variant={currentProject.status === 'active' ? 'default' : currentProject.status === 'completed' ? 'secondary' : 'outline'} className="text-xs">
                               {currentProject.status === 'active' ? 'Aktif' : currentProject.status === 'completed' ? 'Tamamlandı' : 'Beklemede'}
                             </Badge>
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Bütçe Kullanımı:</span>
-                            <span className="font-medium">
-                              {currentProject.budget && currentProject.budget > 0
-                                ? Math.round(((currentProject.actualCost || 0) / currentProject.budget) * 100)
-                                : 0}%
+                          <div className="flex justify-between items-center p-2 rounded-lg bg-muted/50">
+                            <span className="text-sm text-muted-foreground">Bütçe Kullanımı:</span>
+                            <span className={`font-bold text-sm ${budgetUsage > 80 ? 'text-orange-600' : budgetUsage > 100 ? 'text-red-600' : 'text-green-600'}`}>
+                              {budgetUsage}%
                             </span>
                           </div>
                         </div>
