@@ -68,16 +68,16 @@ export const SUBSCRIPTION_TIERS = {
     product_id: "prod_Tm6SDgRvgAk69w",
     price_id: "price_1SoYFrBqz5IswCfZqC0zTj9e",
     name: "Premium",
-    price: 1000,
+    price: 2500,
     currency: "TRY",
     billing_period: "yearly",
     save_percentage: 25,
-    monthly_equivalent: 83.33,
+    monthly_equivalent: 208.33,
     features: [
-      "📊 Aktif Proje: 50 Adet",
-      "👥 Müşteri: 250 Adet",
-      "👨‍💼 Ekip Üyesi: 40 Kişi",
-      "✓ Görev Sayısı: 250 Görev / Proje",
+      "📊 Aktif Proje: Sınırsız",
+      "👥 Müşteri: Sınırsız",
+      "👨‍💼 Ekip Üyesi: Sınırsız",
+      "✓ Görev Sayısı: Sınırsız Görev / Proje",
       "📸 Fotoğraf: 5 Fotoğraf / Proje",
       "🤖 AI Özellikleri: Full AI Maliyet Analizi",
       "📄 Raporlama: Excel + Kurumsal Logolu PDF",
@@ -165,6 +165,16 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
       
       console.log("[SUBSCRIPTION] Response data:", data);
 
+      // Determine tier from productId
+      let tierValue: string | null = null;
+      if (data?.product_id === SUBSCRIPTION_TIERS.standard_monthly.product_id || 
+          data?.product_id === SUBSCRIPTION_TIERS.standard_yearly.product_id) {
+        tierValue = 'standard';
+      } else if (data?.product_id === SUBSCRIPTION_TIERS.premium_monthly.product_id || 
+                 data?.product_id === SUBSCRIPTION_TIERS.premium_yearly.product_id) {
+        tierValue = 'premium';
+      }
+
       setState({
         subscribed: data?.subscribed || false,
         productId: data?.product_id || null,
@@ -172,7 +182,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         subscriptionEnd: data?.subscription_end || null,
         loading: false,
         error: null,
-            tier: data?.tier || null, // Ensure tier is set from API response
+        tier: tierValue,
       });
     } catch (error) {
       console.error("Error checking subscription:", error);

@@ -26,15 +26,15 @@ export const UpgradeAlert = ({ type, current, limit }: UpgradeAlertProps) => {
   const messages = {
     projects: {
       title: "Proje Limitine Ulaştınız",
-      description: `Standard planda maksimum ${limit} proje oluşturabilirsiniz. Şu anda ${current}/${limit} proje kullanıyorsunuz.`,
+      description: `Maksimum ${limit} proje oluşturabilirsiniz. Şu anda ${current}/${limit} proje kullanıyorsunuz. Daha fazla proje eklemek için Premium'a yükseltin.`,
     },
     teamMembers: {
       title: "Ekip Üyesi Limitine Ulaştınız",
-      description: `Standard planda maksimum ${limit} ekip üyesi ekleyebilirsiniz. Şu anda ${current}/${limit} ekip üyesi kullanıyorsunuz.`,
+      description: `Maksimum ${limit} ekip üyesi ekleyebilirsiniz. Şu anda ${current}/${limit} ekip üyesi kullanıyorsunuz. Daha fazla üye eklemek için Premium'a yükseltin.`,
     },
     customers: {
       title: "Müşteri Limitine Ulaştınız",
-      description: `Standard planda maksimum ${limit} müşteri ekleyebilirsiniz. Şu anda ${current}/${limit} müşteri kullanıyorsunuz.`,
+      description: `Maksimum ${limit} müşteri ekleyebilirsiniz. Şu anda ${current}/${limit} müşteri kullanıyorsunuz. Daha fazla müşteri eklemek için Premium'a yükseltin.`,
     },
   };
 

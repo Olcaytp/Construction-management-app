@@ -96,8 +96,6 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { isPremium, subscription } = useSubscription();
   const { isAdmin } = useAdmin();
-  // hasPremiumAccess: premium, admin veya standard plan için true
-  const hasPremiumAccess = isPremium || isAdmin || subscription?.tier === 'standard';
 
   // Scroll to top on component mount
   useEffect(() => {
@@ -138,13 +136,22 @@ const Index = () => {
   ];
 
   // Plan limitleri - Admin'ler premium özelliklerine sahip
-  // Standart ve Premium planlar için aynı fotoğraf limiti kullanılacak
   let currentLimits: any = PLAN_LIMITS.free;
   if (isPremium || isAdmin) {
     currentLimits = PLAN_LIMITS.premium;
   } else if (subscription?.tier === 'standard') {
     currentLimits = PLAN_LIMITS.standard;
   }
+  
+  // Limit aşılıp aşılmadığını kontrol et
+  const isLimitReached = (current: number, limit: number) => {
+    return isFinite(limit) && current >= limit;
+  };
+  
+  const projectLimitReached = isLimitReached(projects.length, currentLimits.maxProjects);
+  const customerLimitReached = isLimitReached(customers.length, currentLimits.maxCustomers);
+  const teamMemberLimitReached = isLimitReached(teamMembers.length, currentLimits.maxTeamMembers);
+  
   const canAddProject = projects.length < currentLimits.maxProjects;
   const canAddTeamMember = teamMembers.length < currentLimits.maxTeamMembers;
   const canAddCustomer = customers.length < currentLimits.maxCustomers;
@@ -628,11 +635,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="projects" className="space-y-4 sm:space-y-6">
-            {!canAddProject && (
+            {projectLimitReached && (
               <UpgradeAlert 
                 type="projects" 
                 current={projects.length} 
-                limit={PLAN_LIMITS.free.maxProjects} 
+                limit={currentLimits.maxProjects} 
               />
             )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -789,12 +796,12 @@ const Index = () => {
                 className="gap-2 w-full sm:w-auto"
                 disabled={
                   projects.length === 0 || 
-                  (!hasPremiumAccess && projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject))
+                  projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject)
                 }
                 title={
                   projects.length === 0 
                     ? 'Önce proje oluşturunuz' 
-                    : (!hasPremiumAccess && projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) 
+                    : (projects.every(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) 
                       ? 'Tüm projelerin görev limiti dolu' 
                       : '')
                 }
@@ -803,7 +810,7 @@ const Index = () => {
                 {t('task.add')}
               </Button>
             </div>
-            {projects.length > 0 && tasks.length > 0 && projects.some(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) && !hasPremiumAccess && (
+            {projects.length > 0 && tasks.length > 0 && projects.some(p => tasks.filter(t => t.projectId === p.id).length >= currentLimits.maxTasksPerProject) && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
                 <div className="font-medium mb-2">⚠️ Görev limitine ulaşan projeler:</div>
                 <ul className="list-disc list-inside space-y-1">
@@ -919,11 +926,11 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="teams" className="space-y-4 sm:space-y-6">
-            {!canAddTeamMember && (
+            {teamMemberLimitReached && (
               <UpgradeAlert 
                 type="teamMembers" 
                 current={teamMembers.length} 
-                limit={PLAN_LIMITS.free.maxTeamMembers} 
+                limit={currentLimits.maxTeamMembers} 
               />
             )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1347,13 +1354,13 @@ const Index = () => {
                   setCustomerFormOpen(true);
                 }} 
                 className="gap-2 w-full sm:w-auto"
-                disabled={!canAddCustomer && !hasPremiumAccess}
+                disabled={!canAddCustomer}
               >
                 <Plus className="h-4 w-4" />
                 {t('customer.add')}
               </Button>
             </div>
-            {!canAddCustomer && !hasPremiumAccess && (
+            {customerLimitReached && (
               <UpgradeAlert 
                 type="customers" 
                 current={customers.length} 
@@ -1504,7 +1511,7 @@ const Index = () => {
         teamMembers={teamMembers}
         tasksByProject={Object.fromEntries(projects.map(p => [p.id, getCleanedTasks(tasks).filter(t => t.projectId === p.id).length]))}
         maxTasksPerProject={currentLimits.maxTasksPerProject}
-        hasPremiumAccess={hasPremiumAccess}
+        hasPremiumAccess={isPremium || isAdmin}
         onValidationError={handleTaskValidationError}
         defaultValues={editingTask ? {
           title: editingTask.title,

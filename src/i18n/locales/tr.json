@@ -534,7 +534,8 @@
     "registeredAt": "Kayıt Tarihi",
     "actions": "İşlemler",
     "roleUpdated": "Rol güncellendi",
-    "roleUpdateError": "Rol güncellenirken hata oluştu"
+    "roleUpdateError": "Rol güncellenirken hata oluştu",
+    "bestValue": "En İyi Değer"
   },
   "sort": {
     "startDate": "Başlangıç Tarihine Göre",
