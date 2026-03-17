@@ -35,7 +35,6 @@ import { ReportsSection } from "@/components/ReportsSection";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InvoicesSection } from "@/components/InvoicesSection";
 import { TimesheetSection } from "@/components/TimesheetSection";
-import { DashboardStats } from "@/components/DashboardStats";
 import { LayoutDashboard, FolderKanban, ListTodo, Users, Plus, Building2, Pencil, Trash2, DollarSign, Package, UserCircle, Crown, BarChart3, Shield, FileText, Receipt, Phone, Briefcase, Banknote, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { ContractGenerator } from "@/components/ContractGenerator";
 import { ContractsSection } from "@/components/ContractsSection";
@@ -539,9 +538,6 @@ const Index = () => {
       <div className="w-full min-h-screen bg-gray-50">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6 px-3 sm:px-4 py-4 sm:py-8">
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
-            {/* Dashboard Statistics Section */}
-            <DashboardStats />
-
             {/* Recent Projects */}
             <div className="space-y-3 sm:space-y-4">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t('app.projects')}</h2>
