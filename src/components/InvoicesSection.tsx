@@ -59,9 +59,8 @@ export const InvoicesSection = ({ projects }: InvoicesSectionProps) => {
     const isEn = lang.startsWith('en');
     const locale = isSv ? 'sv-SE' : isEn ? 'en-US' : 'tr-TR';
     const symbol = isSv ? 'kr' : isEn ? '$' : '₺';
-    const symbolAtEnd = isSv;
     const formatted = amount.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    return symbolAtEnd ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
+    return `${formatted} ${symbol}`;
   };
 
   const getWorkerName = (workerId?: string) => {

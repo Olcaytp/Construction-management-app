@@ -35,6 +35,7 @@ import { ReportsSection } from "@/components/ReportsSection";
 import { AdminPanel } from "@/components/AdminPanel";
 import { InvoicesSection } from "@/components/InvoicesSection";
 import { TimesheetSection } from "@/components/TimesheetSection";
+import { DashboardStats } from "@/components/DashboardStats";
 import { LayoutDashboard, FolderKanban, ListTodo, Users, Plus, Building2, Pencil, Trash2, DollarSign, Package, UserCircle, Crown, BarChart3, Shield, FileText, Receipt, Phone, Briefcase, Banknote, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { ContractGenerator } from "@/components/ContractGenerator";
 import { ContractsSection } from "@/components/ContractsSection";
@@ -52,10 +53,12 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useEffect } from "react";
 import { useContracts } from "@/hooks/useContracts";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
     // localStorage'dan kayıtlı sekmeyi al, yoksa "dashboard" döndür
     if (typeof window !== 'undefined') {
@@ -414,6 +417,15 @@ const Index = () => {
               </div>
             </button>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/statistics")}
+                className="hidden sm:flex gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span>{t("statistics.title") || "İstatistikler"}</span>
+              </Button>
               <HeaderMenu />
             </div>
           </div>
@@ -527,31 +539,8 @@ const Index = () => {
       <div className="w-full min-h-screen bg-gray-50">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6 px-3 sm:px-4 py-4 sm:py-8">
           <TabsContent value="dashboard" className="space-y-4 sm:space-y-6">
-            {/* Compact Stats Header */}
-            <div className="bg-card border border-border rounded-lg p-3 sm:p-4 flex justify-center">
-              <div className="flex flex-wrap items-center gap-3 sm:gap-6 justify-center">
-                <div className="flex items-center gap-2">
-                  <FolderKanban className="h-4 w-4 text-primary" />
-                  <span className="text-xs sm:text-sm text-muted-foreground">{t('stats.totalProjects')}:</span>
-                  <span className="font-bold text-sm sm:text-base text-foreground">{projects.filter(p => p.status === 'active').length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ListTodo className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs sm:text-sm text-muted-foreground">{t('stats.activeTasks')}:</span>
-                  <span className="font-bold text-sm sm:text-base text-foreground">{tasks.filter(t => t.status === 'in-progress').length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ListTodo className="h-4 w-4 text-green-500" />
-                  <span className="text-xs sm:text-sm text-muted-foreground">{t('stats.completedTasks')}:</span>
-                  <span className="font-bold text-sm sm:text-base text-foreground">{tasks.filter(t => t.status === 'completed').length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-orange-500" />
-                  <span className="text-xs sm:text-sm text-muted-foreground">{t('stats.teamMembers')}:</span>
-                  <span className="font-bold text-sm sm:text-base text-foreground">{teamMembers.length}</span>
-                </div>
-              </div>
-            </div>
+            {/* Dashboard Statistics Section */}
+            <DashboardStats />
 
             {/* Recent Projects */}
             <div className="space-y-3 sm:space-y-4">
