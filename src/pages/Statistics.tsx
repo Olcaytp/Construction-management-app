@@ -9,6 +9,7 @@ import { useTasks } from "@/hooks/useTasks";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTimesheets } from "@/hooks/useTimesheets";
 import { useProjects } from "@/hooks/useProjects";
+import { useTaskStatistics } from "@/hooks/useTaskStatistics";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -58,18 +59,11 @@ const Statistics = () => {
   const { teamMembers } = useTeamMembers();
   const { timesheets } = useTimesheets();
   const { projects } = useProjects();
+  const { statistics: customStats, saveTaskStatistics, loading: loadingStats } = useTaskStatistics();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [customStats, setCustomStats] = useState<Record<string, CustomTaskStats>>(() => {
-    try {
-      const saved = localStorage.getItem("taskCustomStats");
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
   const [editForm, setEditForm] = useState<CustomTaskStats>({
     workerCount: 0,
     hoursWorked: 0,
@@ -85,18 +79,28 @@ const Statistics = () => {
 
   const openEditModal = (taskId: string) => {
     const existing = customStats[taskId] || {
-      workerCount: 0,
-      hoursWorked: 0,
-      daysWorked: 0,
-      actualCost: 0,
+      worker_count: 0,
+      hours_worked: 0,
+      days_worked: 0,
+      actual_cost: 0,
     };
-    setEditForm(existing);
+    setEditForm({
+      workerCount: existing.worker_count || 0,
+      hoursWorked: existing.hours_worked || 0,
+      daysWorked: existing.days_worked || 0,
+      actualCost: existing.actual_cost || 0,
+    });
     setEditingTaskId(taskId);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editingTaskId) {
-      saveCustomStats(editingTaskId, editForm);
+      await saveTaskStatistics(editingTaskId, {
+        worker_count: editForm.workerCount,
+        hours_worked: editForm.hoursWorked,
+        days_worked: editForm.daysWorked,
+        actual_cost: editForm.actualCost,
+      });
       setEditingTaskId(null);
     }
   };
@@ -125,11 +129,11 @@ const Statistics = () => {
       const projectName = projects?.find((p) => p.id === task.projectId)?.title || "N/A";
       const custom = customStats[task.id];
 
-      if (custom && custom.actualCost > 0) {
+      if (custom && custom.actual_cost > 0) {
         // Custom stats'dan hesapla
-        const totalCost = custom.actualCost;
-        const personHours = custom.daysWorked * custom.hoursWorked * custom.workerCount;
-        const dailyPersonHours = custom.hoursWorked * custom.workerCount;
+        const totalCost = custom.actual_cost;
+        const personHours = custom.days_worked * custom.hours_worked * custom.worker_count;
+        const dailyPersonHours = custom.hours_worked * custom.worker_count;
 
         return {
           taskId: task.id,
@@ -140,9 +144,9 @@ const Statistics = () => {
           priority: task.priority,
           estimatedCost: task.estimatedCost,
           workers: [],
-          totalWorkers: custom.workerCount,
-          totalHours: custom.hoursWorked,
-          totalDays: custom.daysWorked,
+          totalWorkers: custom.worker_count,
+          totalHours: custom.hours_worked,
+          totalDays: custom.days_worked,
           totalCost,
           personHours,
           dailyPersonHours,
