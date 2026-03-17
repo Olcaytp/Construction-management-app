@@ -420,10 +420,10 @@ const Index = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/statistics")}
-                className="hidden sm:flex gap-2"
+                className="gap-2"
               >
                 <BarChart3 className="h-4 w-4" />
-                <span>{t("statistics.title") || "İstatistikler"}</span>
+                <span className="hidden sm:inline">{t("statistics.title") || "İstatistikler"}</span>
               </Button>
               <HeaderMenu />
             </div>
