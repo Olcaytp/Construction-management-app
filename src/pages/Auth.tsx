@@ -57,9 +57,6 @@ const Auth = () => {
     const { error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
     });
 
     setLoading(false);
@@ -73,7 +70,7 @@ const Auth = () => {
     } else {
       toast({
         title: "Kayıt Başarılı",
-        description: "E-postanıza onay linki gönderildi. Lütfen kaydınızı onaylayın.",
+        description: "Hoşgeldiniz! Şimdi oturum açabilirsiniz.",
       });
       // Clear form and switch to sign in tab
       setEmail("");

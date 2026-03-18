@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,15 +96,10 @@ export const OnboardingModal = ({ open, onComplete }: OnboardingModalProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) return; // Modal dışına tıklanmaya izin verme
-      // Hiçbir şey yapma
-    }}>
-      <DialogContent 
-        className="max-w-md"
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
+    <Dialog open={open} onOpenChange={onComplete}>
+      <DialogContent className="max-w-md">
         <DialogHeader className="text-center">
+          <DialogClose />
           <div className="mx-auto w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
             <Building2 className="w-6 h-6 text-primary" />
           </div>
