@@ -61,6 +61,16 @@ export const ProfileDropdown = () => {
   // Profile verisini yükle
   useEffect(() => {
     const loadProfile = async () => {
+      // First check localStorage for recently set values from location detection
+      const storedCountry = localStorage.getItem('userCountry');
+      const storedCurrency = localStorage.getItem('userCurrency');
+      
+      if (storedCountry) {
+        setCountry(storedCountry);
+        setCurrency(storedCurrency || countryConfig[storedCountry]?.currency || "TRY");
+        console.log('[ProfileDropdown] Loaded from localStorage:', storedCountry);
+      }
+
       if (!user?.id) return;
       try {
         console.log("Loading profile for user:", user.id);
@@ -74,20 +84,23 @@ export const ProfileDropdown = () => {
         console.log("Profile error:", error);
 
         if (data) {
-          setCountry(data.country || "TR");
-          setCurrency(data.currency || "TRY");
+          setCountry(data.country || storedCountry || "TR");
+          setCurrency(data.currency || storedCurrency || "TRY");
         } else if (error?.code === "PGRST116") {
           // Profil yoksa, oluştur
           console.log("Profile not found, creating...");
+          const finalCountry = storedCountry || "TR";
+          const finalCurrency = storedCurrency || countryConfig[finalCountry]?.currency || "TRY";
+          
           const { error: insertError } = await supabase.from("profiles").insert({
             id: user.id,
-            country: "TR",
-            currency: "TRY",
-            language: "tr",
+            country: finalCountry,
+            currency: finalCurrency,
+            language: localStorage.getItem('language') || "tr",
           });
           console.log("Insert error:", insertError);
-          setCountry("TR");
-          setCurrency("TRY");
+          setCountry(finalCountry);
+          setCurrency(finalCurrency);
         }
       } catch (error) {
         console.error("Profile yükleme hatası:", error);
@@ -112,6 +125,10 @@ export const ProfileDropdown = () => {
       const newCurrency = countryConfig[newCountry]?.currency || "TRY";
       setCountry(newCountry);
       setCurrency(newCurrency);
+
+      // Save to localStorage
+      localStorage.setItem('userCountry', newCountry);
+      localStorage.setItem('userCurrency', newCurrency);
 
       if (!user?.id) {
         console.warn("No user ID available");

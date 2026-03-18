@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ interface TimesheetFormProps {
 
 export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defaultValues }: TimesheetFormProps) => {
   const { t, i18n } = useTranslation();
+  const { currency } = useFormatCurrency();
   const formSchema = getFormSchema(t);
 
   const resolveDefaults = () => ({
@@ -71,15 +73,8 @@ export const TimesheetForm = ({ open, onOpenChange, onSubmit, teamMembers, defau
 
   const watchValues = form.watch();
 
-  const getCurrency = () => {
-    const lang = i18n.language;
-    if (lang.startsWith("sv")) return { symbol: "kr", locale: "sv-SE", symbolAtEnd: true };
-    if (lang.startsWith("en")) return { symbol: "$", locale: "en-US", symbolAtEnd: false };
-    return { symbol: "₺", locale: "tr-TR", symbolAtEnd: false };
-  };
-
   const formatMoney = (value: number) => {
-    const { symbol, locale, symbolAtEnd } = getCurrency();
+    const { symbol, locale, symbolAtEnd } = currency;
     const formatted = value.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     return symbolAtEnd ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
   };

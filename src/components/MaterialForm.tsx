@@ -62,6 +62,19 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
 
   // Kullanıcı profilini yükle
   useEffect(() => {
+    // First load from localStorage (set by location detection)
+    const storedCountry = localStorage.getItem('userCountry');
+    const storedCurrency = localStorage.getItem('userCurrency');
+    
+    if (storedCountry) {
+      setUserCountry(storedCountry);
+    }
+    if (storedCurrency) {
+      setUserCurrency(storedCurrency);
+      form.setValue("currency", storedCurrency);
+    }
+
+    // Then sync with database
     const loadUserProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -73,9 +86,9 @@ export const MaterialForm = ({ open, onOpenChange, onSubmit, defaultValues, titl
             .single();
 
           if (data) {
-            setUserCountry(data.country || "TR");
-            setUserCurrency(data.currency || "TRY");
-            form.setValue("currency", data.currency || "TRY");
+            setUserCountry(data.country || storedCountry || "TR");
+            setUserCurrency(data.currency || storedCurrency || "TRY");
+            form.setValue("currency", data.currency || storedCurrency || "TRY");
           }
         }
       } catch (error) {

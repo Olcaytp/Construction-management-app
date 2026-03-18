@@ -51,6 +51,19 @@ export const MaterialsSection = () => {
   }, [userCurrency]);
 
   useEffect(() => {
+    // First load from localStorage (set by location detection)
+    const storedCountry = localStorage.getItem('userCountry');
+    const storedCurrency = localStorage.getItem('userCurrency');
+    
+    if (storedCountry) {
+      setUserCountry(storedCountry);
+      console.log('[MaterialsSection] Loaded from localStorage:', storedCountry);
+    }
+    if (storedCurrency) {
+      setUserCurrency(storedCurrency);
+    }
+
+    // Then sync with database
     const loadProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -63,8 +76,8 @@ export const MaterialsSection = () => {
           .maybeSingle();
 
         if (data) {
-          setUserCountry(data.country || "TR");
-          setUserCurrency(data.currency || "TRY");
+          setUserCountry(data.country || storedCountry || "TR");
+          setUserCurrency(data.currency || storedCurrency || "TRY");
         }
       } catch (error) {
         console.error("load profile error (materials):", error);

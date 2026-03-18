@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,8 @@ const Index = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { formatCurrency, currency } = useFormatCurrency();
+  
   const [activeTab, setActiveTab] = useState(() => {
     // localStorage'dan kayıtlı sekmeyi al, yoksa "dashboard" döndür
     if (typeof window !== 'undefined') {
@@ -72,28 +75,9 @@ const Index = () => {
   const [taskSort, setTaskSort] = useState("dueDate");
 
   // Dil bilgisini buradan çekiyoruz:
-    const currentLanguage = i18n.language; // 'tr', 'sv', 'en' gibi bir değer dönecektir.
-    const isSwedish = currentLanguage.startsWith('sv'); // 'sv' ile başlayan dilleri (sv-SE gibi) İsveççe kabul ederiz.
-    const isEnglish = currentLanguage.startsWith('en'); // 'en' ile başlayan dilleri (en-US gibi) İngilizce kabul ederiz.
-
-    const getCurrencyFormat = (language: string) => {
-      if (language.startsWith('sv')) {
-        return { locale: 'sv-SE', symbol: 'kr', symbolAtEnd: true };
-      }
-      if (language.startsWith('en')) {
-        return { locale: 'en-US', symbol: '$', symbolAtEnd: false };
-      }
-      return { locale: 'tr-TR', symbol: '₺', symbolAtEnd: false };
-    };
-
-    const formatCurrency = (amount: number) => {
-      const { locale, symbol, symbolAtEnd } = getCurrencyFormat(i18n.language);
-      const formattedAmount = amount.toLocaleString(locale, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      });
-      return symbolAtEnd ? `${formattedAmount} ${symbol}` : `${symbol}${formattedAmount}`;
-    };
+  const currentLanguage = i18n.language; // 'tr', 'sv', 'en' gibi bir değer dönecektir.
+  const isSwedish = currentLanguage.startsWith('sv'); // 'sv' ile başlayan dilleri (sv-SE gibi) İsveççe kabul ederiz.
+  const isEnglish = currentLanguage.startsWith('en'); // 'en' ile başlayan dilleri (en-US gibi) İngilizce kabul ederiz.
 
   const { user, signOut } = useAuth();
   const { isPremium, subscription } = useSubscription();
@@ -327,6 +311,8 @@ const Index = () => {
       assignedTo: data.assignee,
       dueDate: data.dueDate,
       estimatedCost: data.estimatedCost,
+      quantity: data.quantity,
+      unit: data.unit,
     };
     addTask(taskData);
     setTaskFormOpen(false);
@@ -359,6 +345,8 @@ const Index = () => {
       assignedTo: data.assignee,
       dueDate: data.dueDate,
       estimatedCost: data.estimatedCost,
+      quantity: data.quantity,
+      unit: data.unit,
     };
     updateTask(taskData);
     setEditingTask(null);
@@ -589,6 +577,8 @@ const Index = () => {
                         dueDate={task.dueDate}
                         status={task.status as any}
                         priority={task.priority as any}
+                        quantity={task.quantity}
+                        unit={task.unit}
                         onStatusChange={(status) => handleStatusChange(task.id, status)}
                       />
                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
@@ -877,6 +867,26 @@ const Index = () => {
                         {task.dueDate && (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <span>📅 {task.dueDate}</span>
+                          </div>
+                        )}
+                        {task.estimatedCost > 0 && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
+                              <span style={{ fontSize: '14px' }}>💰</span>
+                              <span>{formatCurrency(task.estimatedCost)}</span>
+                            </div>
+                            {task.quantity && task.quantity > 0 && (
+                              <>
+                                <span className="text-muted-foreground">•</span>
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <span>{task.quantity.toFixed(2)} {task.unit || 'adet'}</span>
+                                </div>
+                                <span className="text-muted-foreground">•</span>
+                                <div className="px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-semibold">
+                                  <span className="text-xs">{formatCurrency(task.estimatedCost / task.quantity)}/{task.unit || 'adet'}</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1267,7 +1277,7 @@ const Index = () => {
                         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
                             {teamMembers.filter(m => m.id === selectedFinanceTeamMemberId).map(member => {
                                 const formatWage = (wage: number, unit: string) => {
-                                  const { symbol, symbolAtEnd, locale } = getCurrencyFormat(i18n.language);
+                                  const { symbol, symbolAtEnd, locale } = currency;
                                   const formattedAmount = wage.toLocaleString(locale, {
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 0,
@@ -1310,7 +1320,7 @@ const Index = () => {
                       <span className="font-bold text-lg text-foreground">
                         {(() => {
                           const totalWage = teamMembers.reduce((sum, m) => sum + (m.dailyWage || 0), 0);
-                          const { symbol, locale, symbolAtEnd } = getCurrencyFormat(i18n.language);
+                          const { symbol, locale, symbolAtEnd } = currency;
                           const formattedAmount = totalWage.toLocaleString(locale, {
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 0,
@@ -1506,6 +1516,8 @@ const Index = () => {
           status: editingTask.status,
           priority: editingTask.priority,
           estimatedCost: editingTask.estimatedCost,
+          quantity: editingTask.quantity,
+          unit: editingTask.unit,
         } : undefined}
       />
     </div>

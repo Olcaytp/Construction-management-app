@@ -9,7 +9,9 @@ import { useTasks } from "@/hooks/useTasks";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTimesheets } from "@/hooks/useTimesheets";
 import { useProjects } from "@/hooks/useProjects";
+import { useMaterials } from "@/hooks/useMaterials";
 import { useTaskStatistics } from "@/hooks/useTaskStatistics";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -59,7 +61,9 @@ const Statistics = () => {
   const { teamMembers } = useTeamMembers();
   const { timesheets } = useTimesheets();
   const { projects } = useProjects();
+  const { materials } = useMaterials();
   const { statistics: customStats, saveTaskStatistics, loading: loadingStats } = useTaskStatistics();
+  const { formatCurrency } = useFormatCurrency();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -103,25 +107,6 @@ const Statistics = () => {
       });
       setEditingTaskId(null);
     }
-  };
-
-  const getCurrencyFormat = (language: string) => {
-    if (language.startsWith("sv")) {
-      return { locale: "sv-SE", symbol: "kr", symbolAtEnd: true };
-    }
-    if (language.startsWith("en")) {
-      return { locale: "en-US", symbol: "$", symbolAtEnd: false };
-    }
-    return { locale: "tr-TR", symbol: "TL", symbolAtEnd: false };
-  };
-
-  const formatCurrency = (amount: number) => {
-    const { locale, symbol, symbolAtEnd } = getCurrencyFormat(i18n.language);
-    const formattedAmount = amount.toLocaleString(locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    return symbolAtEnd ? `${formattedAmount} ${symbol}` : `${symbol}${formattedAmount}`;
   };
 
   const calculateTaskStatistics = (): TaskStatistics[] => {
@@ -308,6 +293,53 @@ const Statistics = () => {
               {t("statistics.totalTasks") || "Total Tasks"}: <span className="font-bold text-slate-900">{filteredStatistics.length}</span>
             </p>
           </div>
+        </div>
+
+        {/* Özet İstatistikler */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">{t('statistics.totalTasks') || 'Total Tasks'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-slate-900">{filteredStatistics.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">{t('statistics.totalWorkers') || 'Total Workers'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-slate-900">{teamMembers.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-slate-600">{t('stats.realizedUnitPrice') || 'Realized Unit Price'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-1">
+                <div className="text-3xl font-bold text-slate-900">
+                  {(() => {
+                    const materialsWithQuantity = materials.filter(m => m.quantity && m.quantity > 0);
+                    const totalRealizedCost = materialsWithQuantity.reduce((sum, m) => sum + (m.actualCost || 0), 0);
+                    const totalMaterialQuantity = materialsWithQuantity.reduce((sum, m) => sum + m.quantity, 0);
+                    const realizedUnitPrice = totalMaterialQuantity > 0 ? totalRealizedCost / totalMaterialQuantity : 0;
+                    return formatCurrency(realizedUnitPrice);
+                  })()}
+                </div>
+                <div className="text-xs text-slate-500">
+                  {(() => {
+                    const materialsWithQuantity = materials.filter(m => m.quantity && m.quantity > 0);
+                    const totalMaterialQuantity = materialsWithQuantity.reduce((sum, m) => sum + m.quantity, 0);
+                    return totalMaterialQuantity > 0 ? `${totalMaterialQuantity.toFixed(2)} ${t('common.quantity') || 'qty'}` : t('common.noData') || 'No data';
+                  })()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {filteredStatistics.length === 0 ? (

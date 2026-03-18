@@ -5,6 +5,8 @@ import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTimesheets } from "@/hooks/useTimesheets";
+import { useMaterials } from "@/hooks/useMaterials";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend, ScatterChart, Scatter
@@ -20,31 +22,13 @@ const STATUS_COLORS = {
 };
 
 export const DashboardStats = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { projects } = useProjects();
   const { tasks } = useTasks();
   const { teamMembers } = useTeamMembers();
   const { timesheets } = useTimesheets();
-
-  // Para formatı
-  const getCurrencyFormat = (language: string) => {
-    if (language.startsWith('sv')) {
-      return { locale: 'sv-SE', symbol: 'kr', symbolAtEnd: true };
-    }
-    if (language.startsWith('en')) {
-      return { locale: 'en-US', symbol: '$', symbolAtEnd: false };
-    }
-    return { locale: 'tr-TR', symbol: '₺', symbolAtEnd: false };
-  };
-
-  const formatCurrency = (amount: number) => {
-    const { locale, symbol, symbolAtEnd } = getCurrencyFormat(i18n.language);
-    const formattedAmount = amount.toLocaleString(locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    return symbolAtEnd ? `${formattedAmount} ${symbol}` : `${symbol}${formattedAmount}`;
-  };
+  const { materials } = useMaterials();
+  const { formatCurrency } = useFormatCurrency();
 
   // İstatistikler hesaplama
   const stats = useMemo(() => {
@@ -112,6 +96,12 @@ export const DashboardStats = () => {
       ? Math.round((taskDistribution.completed / tasks.length) * 100)
       : 0;
 
+    // Gerçekleşen birim maliyet (malzemelerdeki gerçek maliyet)
+    const materialsWithQuantity = materials.filter(m => m.quantity && m.quantity > 0);
+    const totalRealizedCost = materialsWithQuantity.reduce((sum, m) => sum + (m.actualCost || 0), 0);
+    const totalMaterialQuantity = materialsWithQuantity.reduce((sum, m) => sum + m.quantity, 0);
+    const realizedUnitPrice = totalMaterialQuantity > 0 ? totalRealizedCost / totalMaterialQuantity : 0;
+
     return {
       activeWorkers,
       totalHours,
@@ -121,13 +111,16 @@ export const DashboardStats = () => {
       totalCost,
       taskDistribution,
       completionRate,
+      realizedUnitPrice,
+      totalRealizedCost,
+      totalMaterialQuantity,
       workerHours: workerHours.filter(w => w.hours > 0).sort((a, b) => b.hours - a.hours),
       projectCosts: projectCosts.filter(p => p.actualCost > 0 || p.tasksCost > 0),
       totalTeamMembers: teamMembers.length,
       totalProjects: projects.length,
       totalTasks: tasks.length
     };
-  }, [projects, tasks, teamMembers, timesheets]);
+  }, [projects, tasks, teamMembers, timesheets, materials]);
 
   // Görev dağılımı için pie chart data
   const taskDistributionData = [
@@ -145,7 +138,7 @@ export const DashboardStats = () => {
       </div>
 
       {/* Temel istatistik kartları */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-6">
         <StatsCard
           title={t('stats.activeWorkers') || 'Aktif Çalışan'}
           value={stats.activeWorkers}
@@ -179,6 +172,13 @@ export const DashboardStats = () => {
           icon={TrendingUp}
           variant="info"
           trend={`${stats.totalProjects} toplam`}
+        />
+        <StatsCard
+          title={t('stats.realizedUnitPrice') || 'Gerçekleşen Birim Fiyatı'}
+          value={stats.totalMaterialQuantity > 0 ? formatCurrency(stats.realizedUnitPrice) : formatCurrency(0)}
+          icon={DollarSign}
+          variant="info"
+          trend={stats.totalMaterialQuantity > 0 ? `${stats.totalMaterialQuantity.toFixed(2)} miktar` : 'Veri yok'}
         />
       </div>
 

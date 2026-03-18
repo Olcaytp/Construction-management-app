@@ -17,6 +17,8 @@ interface TaskItemProps {
   dueDate: string;
   status: "pending" | "in-progress" | "completed";
   priority?: "low" | "medium" | "high";
+  quantity?: number;
+  unit?: string;
   onStatusChange?: (status: "pending" | "in-progress" | "completed") => void;
 }
 
@@ -27,6 +29,8 @@ export const TaskItem = ({
   dueDate,
   status,
   priority = "medium",
+  quantity = 0,
+  unit = "adet",
   onStatusChange,
 }: TaskItemProps) => {
   const { t } = useTranslation();
@@ -59,7 +63,7 @@ export const TaskItem = ({
               <Badge className={statusColors[status]}>{statusLabels[status]}</Badge>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground">{project}</p>
-            <div className="flex items-center gap-4 text-sm sm:text-base text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm sm:text-base text-muted-foreground flex-wrap">
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
                 {assignee}
@@ -68,9 +72,14 @@ export const TaskItem = ({
                 <Calendar className="h-4 w-4" />
                 {dueDate}
               </div>
+              {quantity > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold">{quantity}</span>
+                  <span>{unit}</span>
+                </div>
+              )}
             </div>
           </div>
-          <div className="hidden" />
         </div>
       </CardContent>
     </Card>

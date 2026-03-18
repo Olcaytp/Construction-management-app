@@ -12,6 +12,8 @@ export interface Task {
   assignedTo: string;
   dueDate: string;
   estimatedCost: number;
+  quantity: number;
+  unit: string;
 }
 
 export const useTasks = () => {
@@ -38,6 +40,8 @@ export const useTasks = () => {
         assignedTo: t.assigned_to || "",
         dueDate: t.due_date,
         estimatedCost: Number(t.estimated_cost) || 0,
+        quantity: Number(t.quantity) || 0,
+        unit: t.unit || "adet",
       }));
     },
   });
@@ -59,6 +63,8 @@ export const useTasks = () => {
         assigned_to: task.assignedTo,
         due_date: task.dueDate,
         estimated_cost: task.estimatedCost,
+        quantity: task.quantity || 0,
+        unit: task.unit || "adet",
       });
 
       if (error) throw error;
@@ -89,6 +95,8 @@ export const useTasks = () => {
           assigned_to: updates.assignedTo,
           due_date: updates.dueDate,
           estimated_cost: updates.estimatedCost,
+          quantity: updates.quantity,
+          unit: updates.unit,
         })
         .eq("id", id);
 

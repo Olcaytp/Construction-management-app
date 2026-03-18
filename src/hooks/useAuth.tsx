@@ -2,6 +2,8 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import i18n from "@/i18n/config";
+import { detectLocation, isFirstTimeUser, markLocationInitialized } from "@/lib/locationDetection";
 
 interface AuthContextType {
   user: User | null;
@@ -35,6 +37,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const tag = session?.access_token?.startsWith('eyJ') ? 'jwt' : session?.access_token ? 'other' : 'none';
             console.log(`[AUTH] initial user=${session?.user?.id ?? 'null'} token=${tag}`);
           } catch {}
+
+          // Initialize location and language for first-time users
+          if (session?.user && isFirstTimeUser()) {
+            console.log('[AUTH] First time user detected, detecting location...');
+            try {
+              const location = await detectLocation();
+              console.log(`[AUTH] Location detected: ${location.country} (${location.countryCode})`);
+              
+              // Set language
+              localStorage.setItem('language', location.language);
+              await i18n.changeLanguage(location.language);
+              
+              // Set currency
+              localStorage.setItem('userCurrency', location.currency);
+              
+              // Store country code
+              localStorage.setItem('userCountry', location.countryCode);
+              
+              console.log(`[AUTH] Initialized: language=${location.language}, currency=${location.currency}`);
+              
+              markLocationInitialized();
+            } catch (locationError) {
+              console.error('[AUTH] Location detection error:', locationError);
+              // Fall back to defaults
+              markLocationInitialized();
+            }
+          }
         }
       } catch (error) {
         console.error('[AUTH] Session restore error:', error);

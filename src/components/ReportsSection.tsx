@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
@@ -33,6 +34,7 @@ export const ReportsSection = () => {
     projects.length > 0 ? projects[0]?.id || null : null
   );
   const { t } = useTranslation();
+  const { currency } = useFormatCurrency();
   const { isPremium, createCheckout } = useSubscription();
   const { isAdmin } = useAdmin();
   const { tasks } = useTasks();
@@ -40,6 +42,10 @@ export const ReportsSection = () => {
 
   // Admin'ler de premium özelliklere erişebilir
   const hasPremiumAccess = isPremium || isAdmin;
+  
+  // Helper variables for currency formatting in PDF export
+  const locale = currency.locale;
+  const symbol = currency.symbol;
 
   const handleUpgrade = async () => {
     const url = await createCheckout(SUBSCRIPTION_TIERS.premium_monthly.price_id!);
@@ -170,10 +176,10 @@ export const ReportsSection = () => {
           startY: yPos,
           head: [['Kategori', 'Tutar']],
           body: [
-            ['Toplam Bütçe', totalBudget.toLocaleString('tr-TR')],
-            ['Toplam Gelir', totalRevenue.toLocaleString('tr-TR')],
-            ['Toplam Maliyet', totalCost.toLocaleString('tr-TR')],
-            ['Net Kâr', netProfit.toLocaleString('tr-TR')],
+            ['Toplam Bütçe', totalBudget.toLocaleString(currency.locale)],
+            ['Toplam Gelir', totalRevenue.toLocaleString(currency.locale)],
+            ['Toplam Maliyet', totalCost.toLocaleString(currency.locale)],
+            ['Net Kâr', netProfit.toLocaleString(currency.locale)],
             ['Kâr Marjı', `${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%`],
           ],
           theme: 'striped',
@@ -185,10 +191,10 @@ export const ReportsSection = () => {
           startY: yPos,
           head: [['Kategori', 'Tutar']],
           body: [
-            ['Toplam Bütçe', totalBudget.toLocaleString('tr-TR')],
-            ['Toplam Gelir', totalRevenue.toLocaleString('tr-TR')],
-            ['Toplam Maliyet', totalCost.toLocaleString('tr-TR')],
-            ['Net Kâr', netProfit.toLocaleString('tr-TR')],
+            ['Toplam Bütçe', totalBudget.toLocaleString(currency.locale)],
+            ['Toplam Gelir', totalRevenue.toLocaleString(currency.locale)],
+            ['Toplam Maliyet', totalCost.toLocaleString(currency.locale)],
+            ['Net Kâr', netProfit.toLocaleString(currency.locale)],
             ['Kâr Marjı', `${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%`],
           ],
           theme: 'striped',
@@ -222,9 +228,9 @@ export const ReportsSection = () => {
               p.title.length > 20 ? p.title.substring(0, 20) + '...' : p.title,
               p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede',
               `${p.progress}%`,
-              (p.budget || 0).toLocaleString('tr-TR'),
-              (p.actualCost || 0).toLocaleString('tr-TR'),
-              (p.revenue || 0).toLocaleString('tr-TR'),
+              (p.budget || 0).toLocaleString(locale),
+              (p.actualCost || 0).toLocaleString(locale),
+              (p.revenue || 0).toLocaleString(locale),
             ]),
             theme: 'striped',
             headStyles: { fillColor: [147, 51, 234], font: 'DejaVuSans', fontStyle: 'normal' },
@@ -242,9 +248,9 @@ export const ReportsSection = () => {
               p.title.length > 20 ? p.title.substring(0, 20) + '...' : p.title,
               p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede',
               `${p.progress}%`,
-              (p.budget || 0).toLocaleString('tr-TR'),
-              (p.actualCost || 0).toLocaleString('tr-TR'),
-              (p.revenue || 0).toLocaleString('tr-TR'),
+              (p.budget || 0).toLocaleString(locale),
+              (p.actualCost || 0).toLocaleString(locale),
+              (p.revenue || 0).toLocaleString(locale),
             ]),
             theme: 'striped',
             headStyles: { fillColor: [147, 51, 234], font: 'DejaVuSans', fontStyle: 'normal' },
@@ -281,7 +287,7 @@ export const ReportsSection = () => {
           return [
             m.name,
             m.specialty,
-            (m.dailyWage || 0).toLocaleString('tr-TR'),
+            (m.dailyWage || 0).toLocaleString(locale),
             memberTasks.length.toString(),
           ];
         }),
@@ -315,10 +321,10 @@ export const ReportsSection = () => {
         `Ekip Üyesi Sayısı: ${teamMembers.length}\n\n`,
         
         `FİNANSAL ÖZET\n`,
-        `Toplam Bütçe: ₺${totalBudget.toLocaleString('tr-TR')}`,
-        `Toplam Gelir: ₺${totalRevenue.toLocaleString('tr-TR')}`,
-        `Toplam Maliyet: ₺${totalCost.toLocaleString('tr-TR')}`,
-        `Net Kâr: ₺${netProfit.toLocaleString('tr-TR')}`,
+        `Toplam Bütçe: ₺${totalBudget.toLocaleString(locale)}`,
+        `Toplam Gelir: ₺${totalRevenue.toLocaleString(locale)}`,
+        `Toplam Maliyet: ₺${totalCost.toLocaleString(locale)}`,
+        `Net Kâr: ₺${netProfit.toLocaleString(locale)}`,
         `Kâr Marjı: ${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%\n\n`,
       ];
 
@@ -328,9 +334,9 @@ export const ReportsSection = () => {
           sections.push(`Proje: ${p.title}`);
           sections.push(`  Durum: ${p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede'}`);
           sections.push(`  İlerleme: ${p.progress}%`);
-          sections.push(`  Bütçe: ₺${(p.budget || 0).toLocaleString('tr-TR')}`);
-          sections.push(`  Maliyet: ₺${(p.actualCost || 0).toLocaleString('tr-TR')}`);
-          sections.push(`  Gelir: ₺${(p.revenue || 0).toLocaleString('tr-TR')}`);
+          sections.push(`  Bütçe: ₺${(p.budget || 0).toLocaleString(locale)}`);
+          sections.push(`  Maliyet: ₺${(p.actualCost || 0).toLocaleString(locale)}`);
+          sections.push(`  Gelir: ₺${(p.revenue || 0).toLocaleString(locale)}`);
           sections.push(``);
         });
         sections.push(`\n`);
@@ -342,7 +348,7 @@ export const ReportsSection = () => {
           const memberTasks = tasks.filter(t => t.assignedTo === m.id);
           sections.push(`Üye: ${m.name}`);
           sections.push(`  Uzmanlık: ${m.specialty}`);
-          sections.push(`  Günlük Ücret: ₺${(m.dailyWage || 0).toLocaleString('tr-TR')}`);
+          sections.push(`  Günlük Ücret: ₺${(m.dailyWage || 0).toLocaleString(locale)}`);
           sections.push(`  Atanan Görev: ${memberTasks.length}`);
           sections.push(``);
         });
@@ -406,10 +412,10 @@ p {
 
 <div class="section">
 <div class="section-title">Finansal Özet</div>
-<div class="data-row"><span>Toplam Bütçe:</span><span>₺${totalBudget.toLocaleString('tr-TR')}</span></div>
-<div class="data-row"><span>Toplam Gelir:</span><span>₺${totalRevenue.toLocaleString('tr-TR')}</span></div>
-<div class="data-row"><span>Toplam Maliyet:</span><span>₺${totalCost.toLocaleString('tr-TR')}</span></div>
-<div class="data-row"><span>Net Kâr:</span><span>₺${netProfit.toLocaleString('tr-TR')}</span></div>
+<div class="data-row"><span>Toplam Bütçe:</span><span>₺${totalBudget.toLocaleString(locale)}</span></div>
+<div class="data-row"><span>Toplam Gelir:</span><span>₺${totalRevenue.toLocaleString(locale)}</span></div>
+<div class="data-row"><span>Toplam Maliyet:</span><span>₺${totalCost.toLocaleString(locale)}</span></div>
+<div class="data-row"><span>Net Kâr:</span><span>₺${netProfit.toLocaleString(locale)}</span></div>
 <div class="data-row"><span>Kâr Marjı:</span><span>${totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0}%</span></div>
 </div>
 
@@ -421,9 +427,9 @@ ${projects.map(p => `
 <p style="margin: 0;"><strong>${p.title}</strong></p>
 <p style="margin: 5px 0; color: #666;">Durum: ${p.status === 'active' ? 'Aktif' : p.status === 'completed' ? 'Tamamlandı' : 'Beklemede'}</p>
 <p style="margin: 5px 0; color: #666;">İlerleme: ${p.progress}%</p>
-<p style="margin: 5px 0; color: #666;">Bütçe: ₺${(p.budget || 0).toLocaleString('tr-TR')}</p>
-<p style="margin: 5px 0; color: #666;">Maliyet: ₺${(p.actualCost || 0).toLocaleString('tr-TR')}</p>
-<p style="margin: 5px 0; color: #666;">Gelir: ₺${(p.revenue || 0).toLocaleString('tr-TR')}</p>
+<p style="margin: 5px 0; color: #666;">Bütçe: ₺${(p.budget || 0).toLocaleString(locale)}</p>
+<p style="margin: 5px 0; color: #666;">Maliyet: ₺${(p.actualCost || 0).toLocaleString(locale)}</p>
+<p style="margin: 5px 0; color: #666;">Gelir: ₺${(p.revenue || 0).toLocaleString(locale)}</p>
 </div>
 `).join('')}
 </div>
@@ -438,7 +444,7 @@ ${teamMembers.map(m => {
 <div style="background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px;">
 <p style="margin: 0;"><strong>${m.name}</strong></p>
 <p style="margin: 5px 0; color: #666;">Uzmanlık: ${m.specialty}</p>
-<p style="margin: 5px 0; color: #666;">Günlük Ücret: ₺${(m.dailyWage || 0).toLocaleString('tr-TR')}</p>
+<p style="margin: 5px 0; color: #666;">Günlük Ücret: ₺${(m.dailyWage || 0).toLocaleString(locale)}</p>
 <p style="margin: 5px 0; color: #666;">Atanan Görev: ${memberTasks.length}</p>
 </div>
 `;
@@ -490,6 +496,64 @@ ${teamMembers.map(m => {
     { name: t('reports.status.inProgress'), value: inProgressTasks, color: 'hsl(var(--primary))' },
     { name: t('reports.status.pending'), value: pendingTasks, color: 'hsl(var(--chart-4))' },
   ];
+
+  // Task Statistics with unit costs
+  const taskStatisticsData = tasks
+    .filter(t => t.quantity && t.quantity > 0)
+    .map(t => {
+      const projectName = projects.find(p => p.id === t.projectId)?.title || "Unknown";
+      const unitCost = t.estimatedCost / t.quantity;
+      return {
+        id: t.id,
+        title: t.title,
+        project: projectName,
+        quantity: t.quantity,
+        unit: t.unit || "adet",
+        totalCost: t.estimatedCost,
+        unitCost: unitCost,
+      };
+    })
+    .sort((a, b) => b.totalCost - a.totalCost);
+
+  // Project-based unit cost analysis
+  const projectUnitCostAnalysis = projects
+    .map(p => {
+      const projectTasks = tasks.filter(t => t.projectId === p.id && t.quantity && t.quantity > 0);
+      if (projectTasks.length === 0) return null;
+      
+      const totalQuantity = projectTasks.reduce((sum, t) => sum + t.quantity, 0);
+      const totalCost = projectTasks.reduce((sum, t) => sum + t.estimatedCost, 0);
+      const unitCost = totalCost / totalQuantity;
+      
+      return {
+        projectId: p.id,
+        projectName: p.title,
+        taskCount: projectTasks.length,
+        totalQuantity: totalQuantity,
+        totalCost: totalCost,
+        unitCost: unitCost,
+      };
+    })
+    .filter(p => p !== null)
+    .sort((a, b) => b.totalCost - a.totalCost);
+
+  // Overall unit cost summary
+  const overallUnitCostSummary = (() => {
+    const tasksWithQuantity = tasks.filter(t => t.quantity && t.quantity > 0);
+    if (tasksWithQuantity.length === 0) {
+      return { totalQuantity: 0, totalCost: 0, avgUnitCost: 0 };
+    }
+    const totalQuantity = tasksWithQuantity.reduce((sum, t) => sum + t.quantity, 0);
+    const totalCost = tasksWithQuantity.reduce((sum, t) => sum + t.estimatedCost, 0);
+    return {
+      totalQuantity: totalQuantity,
+      totalCost: totalCost,
+      avgUnitCost: totalCost / totalQuantity,
+      taskCount: tasksWithQuantity.length,
+      maxUnitCost: Math.max(...tasksWithQuantity.map(t => t.estimatedCost / t.quantity)),
+      minUnitCost: Math.min(...tasksWithQuantity.map(t => t.estimatedCost / t.quantity)),
+    };
+  })();
 
   const projectStatusData = [
     { name: 'Aktif', value: activeProjects },
@@ -704,15 +768,15 @@ ${teamMembers.map(m => {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                               <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
                                 <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.budget')}</p>
-                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">₺{(currentProject.budget || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">₺{(currentProject.budget || 0).toLocaleString(locale)}</p>
                               </div>
                               <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg border border-orange-100 dark:border-orange-900">
                                 <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.cost')}</p>
-                                <p className="text-lg font-bold text-orange-700 dark:text-orange-300">₺{(currentProject.actualCost || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-lg font-bold text-orange-700 dark:text-orange-300">₺{(currentProject.actualCost || 0).toLocaleString(locale)}</p>
                               </div>
                               <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg border border-green-100 dark:border-green-900">
                                 <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.labels.revenue')}</p>
-                                <p className="text-lg font-bold text-green-700 dark:text-green-300">₺{(currentProject.revenue || 0).toLocaleString('tr-TR')}</p>
+                                <p className="text-lg font-bold text-green-700 dark:text-green-300">₺{(currentProject.revenue || 0).toLocaleString(locale)}</p>
                               </div>
                             </div>
                             
@@ -720,7 +784,7 @@ ${teamMembers.map(m => {
                               <div className="flex justify-between items-center p-2 bg-green-50 dark:bg-green-950 rounded-lg">
                                 <span className="text-xs sm:text-sm font-medium text-muted-foreground">{t('reports.labels.netProfit')}</span>
                                 <span className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
-                                  ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString('tr-TR')}
+                                  ₺{((currentProject.revenue || 0) - (currentProject.actualCost || 0)).toLocaleString(locale)}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
@@ -817,16 +881,16 @@ ${teamMembers.map(m => {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-muted">
                           <span className="text-sm font-medium text-muted-foreground">{t('reports.profitAnalysis.totalRevenue')}</span>
-                          <span className="font-bold text-green-600 dark:text-green-400">₺{projectRevenue.toLocaleString('tr-TR')}</span>
+                          <span className="font-bold text-green-600 dark:text-green-400">₺{projectRevenue.toLocaleString(locale)}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-muted">
                           <span className="text-sm font-medium text-muted-foreground">{t('reports.profitAnalysis.totalCost')}</span>
-                          <span className="font-bold text-orange-600 dark:text-orange-400">₺{projectCost.toLocaleString('tr-TR')}</span>
+                          <span className="font-bold text-orange-600 dark:text-orange-400">₺{projectCost.toLocaleString(locale)}</span>
                         </div>
                         <div className={`flex justify-between items-center p-3 rounded-lg border-2 ${isProfit ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'}`}>
                           <span className={`font-bold text-sm ${isProfit ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{t('reports.profitAnalysis.netProfit')}</span>
                           <span className={`font-bold text-xl ${isProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            ₺{projectProfit.toLocaleString('tr-TR')}
+                            ₺{projectProfit.toLocaleString(locale)}
                           </span>
                         </div>
                         <div className="mt-4 pt-3 border-t">
@@ -899,6 +963,131 @@ ${teamMembers.map(m => {
                       </div>
                     );
                   })()}
+                </CardContent>
+              </Card>
+
+              {/* Task Statistics - Unit Cost Analysis */}
+              <Card className="shadow-sm md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold">{t('reports.taskStatistics.title') || 'Görev İstatistikleri'}</CardTitle>
+                  <CardDescription className="text-xs">{t('reports.taskStatistics.desc') || 'Gerçekleşen Maliyet ÷ Toplam Miktar = Birim Maliyet'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {taskStatisticsData.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Overall Summary */}
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-4 rounded-lg border border-purple-100 dark:border-purple-800">
+                        <h3 className="font-semibold text-sm mb-3">{t('reports.taskStatistics.overallSummary') || 'Genel Özet'}</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">{t('reports.taskStatistics.totalTasks') || 'Görev Sayısı'}</p>
+                            <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{overallUnitCostSummary.taskCount}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">{t('reports.taskStatistics.totalQuantity') || 'Toplam Miktar'}</p>
+                            <p className="text-lg font-bold text-purple-700 dark:text-purple-300">{overallUnitCostSummary.totalQuantity.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">{t('reports.taskStatistics.totalCostLabel') || 'Toplam Maliyet'}</p>
+                            <p className="text-lg font-bold text-purple-700 dark:text-purple-300">₺{overallUnitCostSummary.totalCost.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">{t('reports.taskStatistics.avgUnitCost') || 'Ort. Birim'}</p>
+                            <p className="text-lg font-bold text-blue-700 dark:text-blue-300">₺{overallUnitCostSummary.avgUnitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Project-based Unit Cost */}
+                      {projectUnitCostAnalysis.length > 0 && (
+                        <div>
+                          <h3 className="font-semibold text-sm mb-2">{t('reports.taskStatistics.byProject') || 'Proje Bazında Birim Maliyet'}</h3>
+                          <div className="space-y-2">
+                            {projectUnitCostAnalysis.map((proj) => (
+                              <div key={proj.projectId} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="min-w-0">
+                                  <p className="font-medium text-sm truncate">{proj.projectName}</p>
+                                  <p className="text-xs text-muted-foreground">{proj.taskCount} görev • {proj.totalQuantity.toFixed(1)} toplam miktar</p>
+                                </div>
+                                <div className="text-right ml-2 flex-shrink-0">
+                                  <p className="text-xs text-muted-foreground mb-1">Birim Maliyet</p>
+                                  <p className="font-bold text-sm px-2 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+                                    ₺{proj.unitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Detailed Tasks Table */}
+                      <div>
+                        <h3 className="font-semibold text-sm mb-2">{t('reports.taskStatistics.detailedList') || 'Görev Detayları'}</h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-muted-foreground/20">
+                                <th className="text-left p-2 font-semibold">{t('reports.taskStatistics.task') || 'Görev'}</th>
+                                <th className="text-right p-2 font-semibold">{t('reports.taskStatistics.quantity') || 'Miktar'}</th>
+                                <th className="text-right p-2 font-semibold">{t('reports.taskStatistics.totalCost') || 'Toplam'}</th>
+                                <th className="text-right p-2 font-semibold">{t('reports.taskStatistics.unitCost') || 'Birim Maliyet'}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {taskStatisticsData.map((stat, index) => (
+                                <tr key={stat.id} className="border-b border-muted-foreground/10 hover:bg-muted/30 transition-colors">
+                                  <td className="p-2">
+                                    <div>
+                                      <p className="font-medium text-xs sm:text-sm truncate">{stat.title}</p>
+                                      <p className="text-xs text-muted-foreground">{stat.project}</p>
+                                    </div>
+                                  </td>
+                                  <td className="text-right p-2">
+                                    <span className="font-semibold text-xs sm:text-sm">{stat.quantity.toFixed(2)}</span>
+                                    <span className="text-xs text-muted-foreground ml-1">{stat.unit}</span>
+                                  </td>
+                                  <td className="text-right p-2 font-medium text-xs sm:text-sm">₺{stat.totalCost.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                                  <td className="text-right p-2">
+                                    <span className="px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-semibold text-xs sm:text-sm">
+                                      ₺{stat.unitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Range Stats */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t">
+                        <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg border border-orange-100 dark:border-orange-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.taskStatistics.highestUnitCost') || 'En Yüksek Birim'}</p>
+                          <p className="text-lg font-bold text-orange-700 dark:text-orange-300">
+                            ₺{overallUnitCostSummary.maxUnitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.taskStatistics.avgUnitCost') || 'Ort. Birim Maliyet'}</p>
+                          <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                            ₺{overallUnitCostSummary.avgUnitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg border border-green-100 dark:border-green-900">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{t('reports.taskStatistics.lowestUnitCost') || 'En Düşük Birim'}</p>
+                          <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                            ₺{overallUnitCostSummary.minUnitCost.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-6 text-center">
+                      <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-2 opacity-50" />
+                      <p className="text-muted-foreground">{t('reports.taskStatistics.empty') || 'Miktar bilgisine sahip görev bulunmamaktadır'}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </>

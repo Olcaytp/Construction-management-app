@@ -47,6 +47,8 @@ const getFormSchema = (t: any) => {
     status: z.enum(["pending", "in-progress", "completed"]),
     priority: z.enum(["low", "medium", "high"]),
     estimatedCost: z.coerce.number().min(0, "Tahmini maliyet 0 veya daha büyük olmalı").default(0),
+    quantity: z.coerce.number().min(0, "Miktar 0 veya daha büyük olmalı").default(0),
+    unit: z.string().min(1, "Birim seçilmelidir").default("adet"),
   }).refine((data) => {
     // Status completed ise tarih kısıtlaması yoktur
     if (data.status === "completed") return true;
@@ -99,6 +101,8 @@ export const TaskForm = ({
       status: "pending",
       priority: "medium",
       estimatedCost: "",
+      quantity: "",
+      unit: "adet",
     },
   });
 
@@ -116,6 +120,8 @@ export const TaskForm = ({
         status: "pending",
         priority: "medium",
         estimatedCost: "",
+        quantity: "",
+        unit: "adet",
       });
     }
   }, [defaultValues, form, open, tasksByProject]);
@@ -293,6 +299,48 @@ export const TaskForm = ({
                   <FormControl>
                     <Input type="number" min="0" placeholder={t('task.estimatedCostPlaceholder')} {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('task.quantity') || 'Miktar'}</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" step="0.01" placeholder={t('task.quantityPlaceholder') || 'Örn: 100'} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('task.unit') || 'Birim'}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('task.selectUnit') || 'Birim seçin'} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="adet">Adet</SelectItem>
+                      <SelectItem value="m2">m² (Metrekare)</SelectItem>
+                      <SelectItem value="m3">m³ (Metreküp)</SelectItem>
+                      <SelectItem value="kg">kg (Kilogram)</SelectItem>
+                      <SelectItem value="ton">Ton</SelectItem>
+                      <SelectItem value="m">m (Meter)</SelectItem>
+                      <SelectItem value="cm">cm (Santimetre)</SelectItem>
+                      <SelectItem value="lt">Litre</SelectItem>
+                      <SelectItem value="saat">Saat</SelectItem>
+                      <SelectItem value="gün">Gün</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

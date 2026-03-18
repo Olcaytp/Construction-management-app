@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -68,6 +69,7 @@ export const InvoiceForm = ({
   const { t, i18n } = useTranslation();
   const { teamMembers } = useTeamMembers();
   const { projects } = useProjects();
+  const { formatCurrency, currency } = useFormatCurrency();
   const [isOpen, setIsOpen] = useState(controlledIsOpen ?? false);
   
   const formSchema = getFormSchema(t);
@@ -92,18 +94,7 @@ export const InvoiceForm = ({
   const watchValues = form.watch();
   const isCustomWorkType = watchValues.work_type === "custom";
 
-  const formatCurrency = (amount: number) => {
-    const lang = i18n.language;
-    const isSv = lang.startsWith("sv");
-    const isEn = lang.startsWith("en");
-    const locale = isSv ? "sv-SE" : isEn ? "en-US" : "tr-TR";
-    const symbol = isSv ? "kr" : isEn ? "$" : "₺";
-    const symbolAtEnd = isSv;
-    const formatted = amount.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    return symbolAtEnd ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
-  };
-
-  const currencySymbol = i18n.language.startsWith("sv") ? "kr" : i18n.language.startsWith("en") ? "$" : "₺";
+  const currencySymbol = currency.symbol;
 
   const getWorkTypeLabel = (value: string) => t(`invoice.workTypes.${value}`, { defaultValue: WORK_TYPES.find((type) => type.value === value)?.label || value });
 

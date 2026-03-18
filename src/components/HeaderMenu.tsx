@@ -97,6 +97,17 @@ export const HeaderMenu = () => {
 
   // Profile verisini yükle
   useEffect(() => {
+    // First load from localStorage (set by location detection)
+    const storedCountry = localStorage.getItem('userCountry');
+    const storedCurrency = localStorage.getItem('userCurrency');
+    
+    if (storedCountry) {
+      setCountry(storedCountry);
+    }
+    if (storedCurrency) {
+      setCurrency(storedCurrency);
+    }
+
     const loadProfile = async () => {
       if (!user?.id) return;
       try {
@@ -107,19 +118,22 @@ export const HeaderMenu = () => {
           .maybeSingle();
 
         if (data) {
-          setCountry(data.country || "TR");
-          setCurrency(data.currency || "TRY");
+          setCountry(data.country || storedCountry || "TR");
+          setCurrency(data.currency || storedCurrency || "TRY");
         } else if (!data && !error) {
           // Profil yok, otomatik oluştur
+          const finalCountry = storedCountry || "TR";
+          const finalCurrency = storedCurrency || "TRY";
+          
           const { error: insertError } = await supabase.from("profiles").insert({
             id: user.id,
-            country: "TR",
-            currency: "TRY",
+            country: finalCountry,
+            currency: finalCurrency,
             language: i18n.language,
           });
           if (!insertError) {
-            setCountry("TR");
-            setCurrency("TRY");
+            setCountry(finalCountry);
+            setCurrency(finalCurrency);
           }
         }
       } catch (error) {
@@ -135,6 +149,10 @@ export const HeaderMenu = () => {
     const newCurrency = config[newCountry]?.currency || "TRY";
     setCountry(newCountry);
     setCurrency(newCurrency);
+
+    // Save to localStorage
+    localStorage.setItem('userCountry', newCountry);
+    localStorage.setItem('userCurrency', newCurrency);
 
     // Toast başlığı ve açıklaması dile göre
     const messages: Record<string, { title: string; description: string }> = {
