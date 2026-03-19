@@ -31,6 +31,8 @@ interface TaskStatistics {
   status: string;
   priority: string;
   estimatedCost: number;
+  quantity: number;
+  unit: string;
   workers: Array<{
     id: string;
     name: string;
@@ -128,6 +130,8 @@ const Statistics = () => {
           status: task.status,
           priority: task.priority,
           estimatedCost: task.estimatedCost,
+          quantity: task.quantity || 0,
+          unit: task.unit || "adet",
           workers: [],
           totalWorkers: custom.worker_count,
           totalHours: custom.hours_worked,
@@ -203,6 +207,8 @@ const Statistics = () => {
         status: task.status,
         priority: task.priority,
         estimatedCost: task.estimatedCost,
+        quantity: task.quantity || 0,
+        unit: task.unit || "adet",
         workers,
         totalWorkers,
         totalHours,
@@ -315,31 +321,7 @@ const Statistics = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-600">{t('stats.realizedUnitPrice') || 'Realized Unit Price'}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-1">
-                <div className="text-3xl font-bold text-slate-900">
-                  {(() => {
-                    const materialsWithQuantity = materials.filter(m => m.quantity && m.quantity > 0);
-                    const totalRealizedCost = materialsWithQuantity.reduce((sum, m) => sum + (m.actualCost || 0), 0);
-                    const totalMaterialQuantity = materialsWithQuantity.reduce((sum, m) => sum + m.quantity, 0);
-                    const realizedUnitPrice = totalMaterialQuantity > 0 ? totalRealizedCost / totalMaterialQuantity : 0;
-                    return formatCurrency(realizedUnitPrice);
-                  })()}
-                </div>
-                <div className="text-xs text-slate-500">
-                  {(() => {
-                    const materialsWithQuantity = materials.filter(m => m.quantity && m.quantity > 0);
-                    const totalMaterialQuantity = materialsWithQuantity.reduce((sum, m) => sum + m.quantity, 0);
-                    return totalMaterialQuantity > 0 ? `${totalMaterialQuantity.toFixed(2)} ${t('common.quantity') || 'qty'}` : t('common.noData') || 'No data';
-                  })()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
 
         {filteredStatistics.length === 0 ? (
@@ -355,7 +337,14 @@ const Statistics = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <CardTitle className="text-xl text-slate-900">{stat.taskTitle}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-xl text-slate-900">{stat.taskTitle}</CardTitle>
+                        {stat.quantity > 0 && (
+                          <span className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {stat.quantity.toFixed(2)} {stat.unit}
+                          </span>
+                        )}
+                      </div>
                       <CardDescription className="text-slate-600">
                         {t("common.project") || "Project"}: {stat.projectName}
                       </CardDescription>
@@ -422,6 +411,47 @@ const Statistics = () => {
                         <p className="text-sm text-orange-600 font-medium">{t("statistics.estimatedCost") || "Est."}</p>
                       </div>
                       <p className="text-2xl font-bold text-orange-900">{formatCurrency(stat.estimatedCost)}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className="w-4 h-4 text-indigo-600" />
+                        <p className="text-sm text-indigo-600 font-medium">{t("statistics.actualUnitCost") || "Actual Unit Cost"}</p>
+                      </div>
+                      <p className="text-2xl font-bold text-indigo-900">
+                        {stat.quantity > 0 ? formatCurrency(stat.totalCost / stat.quantity) : formatCurrency(0)}
+                      </p>
+                      <p className="text-xs text-indigo-600 mt-1">
+                        {stat.quantity > 0 ? `/ ${stat.unit}` : '-'}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 className="w-4 h-4 text-cyan-600" />
+                        <p className="text-sm text-cyan-600 font-medium">{t("statistics.estimatedUnitCost") || "Estimated Unit Cost"}</p>
+                      </div>
+                      <p className="text-2xl font-bold text-cyan-900">
+                        {stat.quantity > 0 ? formatCurrency(stat.estimatedCost / stat.quantity) : formatCurrency(0)}
+                      </p>
+                      <p className="text-xs text-cyan-600 mt-1">
+                        {stat.quantity > 0 ? `/ ${stat.unit}` : '-'}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-violet-600" />
+                        <p className="text-sm text-violet-600 font-medium">{t("statistics.hoursPerUnit") || "Hours Per Unit"}</p>
+                      </div>
+                      <p className="text-2xl font-bold text-violet-900">
+                        {stat.quantity > 0 ? (stat.personHours / stat.quantity).toFixed(2) : 0}
+                      </p>
+                      <p className="text-xs text-violet-600 mt-1">
+                        {stat.quantity > 0 ? `${t("common.hours") || "hour"} / ${stat.unit}` : '-'}
+                      </p>
                     </div>
                   </div>
 

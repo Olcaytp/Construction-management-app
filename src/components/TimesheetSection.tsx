@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -37,25 +38,12 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { timesheets, isLoading, createTimesheet, updateTimesheet, deleteTimesheet } = useTimesheets();
+  const { formatCurrency, currency } = useFormatCurrency();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<TimesheetEntry | null>(null);
-  const [userCurrency, setUserCurrency] = useState<string>("");
-  const [userCountry, setUserCountry] = useState<string>("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      const { data } = await supabase.from('profiles').select('country, currency').eq('id', user.id).single();
-      if (data) {
-        setUserCountry(data.country || "");
-        setUserCurrency(data.currency || "");
-      }
-    };
-    loadProfile();
-  }, [user]);
 
   const memberMap = useMemo(() => {
     const map: Record<string, TeamMember> = {};
@@ -85,16 +73,13 @@ export const TimesheetSection = ({ teamMembers }: TimesheetSectionProps) => {
   }, [timesheets]);
 
   const currencyInfo = useMemo(() => {
-    // Use profile currency first, fallback to language
-    const currency = userCurrency || (i18n.language.startsWith("sv") ? "SEK" : i18n.language.startsWith("en") ? "USD" : "TRY");
-    
-    if (currency === "SEK") return { symbol: "kr", locale: "sv-SE", symbolAtEnd: true };
-    if (currency === "USD") return { symbol: "$", locale: "en-US", symbolAtEnd: false };
-    if (currency === "GBP") return { symbol: "£", locale: "en-GB", symbolAtEnd: false };
-    if (currency === "EUR") return { symbol: "€", locale: "de-DE", symbolAtEnd: false };
-    if (currency === "TRY") return { symbol: "₺", locale: "tr-TR", symbolAtEnd: false };
-    return { symbol: "₺", locale: "tr-TR", symbolAtEnd: false };
-  }, [userCurrency, i18n.language]);
+    return {
+      symbol: currency.symbol,
+      locale: currency.locale,
+      symbolAtEnd: currency.symbolAtEnd,
+      code: currency.code
+    };
+  }, [currency]);
 
   const formatMoney = (value: number) => {
     const { symbol, locale, symbolAtEnd } = currencyInfo;

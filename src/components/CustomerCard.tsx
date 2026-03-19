@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useFormatCurrency } from "@/hooks/useCurrencyFormat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Pencil, Trash2 } from "lucide-react";
@@ -27,39 +28,10 @@ export const CustomerCard = ({
   onEdit,
   onDelete,
 }: CustomerCardProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { formatCurrency } = useFormatCurrency();
   
   const balance = totalReceivable - totalPaid;
-
-  const formatCurrency = (amount: number) => {
-    const currentLanguage = i18n.language;
-    let locale = 'tr-TR';
-    let currencySymbol = '₺';
-    let symbolAtEnd = false;
-
-    if (currentLanguage.startsWith('sv')) {
-      locale = 'sv-SE';
-      currencySymbol = 'kr';
-      symbolAtEnd = true;
-    } else if (currentLanguage.startsWith('en')) {
-      locale = 'en-US';
-      currencySymbol = '$';
-      symbolAtEnd = false;
-    }
-
-    const formattedAmount = Math.abs(amount).toLocaleString(locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-
-    const sign = amount < 0 ? '-' : '';
-    
-    if (symbolAtEnd) {
-      return `${sign}${formattedAmount} ${currencySymbol}`;
-    } else {
-      return `${sign}${currencySymbol}${formattedAmount}`;
-    }
-  };
 
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onEdit}>
