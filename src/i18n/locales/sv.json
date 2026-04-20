@@ -44,7 +44,6 @@
     "overviewDescription": "Projekt- och arbetarprestanda",
     "activeWorkers": "Aktiva arbetare",
     "totalHours": "Totala timmar",
-    "completedTasks": "Slutförda uppgifter",
     "activeProjects": "Aktiva projekt",
     "realizedUnitPrice": "Realiserad enhetspris",
     "taskDistribution": "Uppgiftsfördelning",
@@ -192,7 +191,10 @@
     "cancel": "Avbryt",
     "save": "Spara",
     "created": "Projekt skapades",
-    "createError": "Fel vid skapande av projekt"
+    "createError": "Fel vid skapande av projekt",
+    "added": "Projekt tillagt",
+    "updated": "Projekt uppdaterat",
+    "deleted": "Projekt raderat"
   },
   "contract": {
     "title": "Arbetssäkerhet",
@@ -270,7 +272,10 @@
     "unit": "Enhet",
     "selectUnit": "Välj enhet",
     "cancel": "Avbryt",
-    "save": "Spara"
+    "save": "Spara",
+    "added": "Uppgift tillagd",
+    "updated": "Uppgift uppdaterad",
+    "deleted": "Uppgift raderad"
   },
   "team": {
     "add": "Lägg till teammedlem",
@@ -292,7 +297,10 @@
     "totalPaidPlaceholder": "t.ex., 15000",
     "balance": "Balans",
     "cancel": "Avbryt",
-    "save": "Spara"
+    "save": "Spara",
+    "added": "Teammedlem tillagd",
+    "updated": "Teammedlem uppdaterad",
+    "deleted": "Teammedlem raderad"
   },
   "customer": {
     "add": "Lägg till kund",
@@ -310,7 +318,10 @@
     "balance": "Balans",
     "projects": "Projekt",
     "cancel": "Avbryt",
-    "save": "Spara"
+    "save": "Spara",
+    "added": "Kund tillagd",
+    "updated": "Kund uppdaterad",
+    "deleted": "Kund raderad"
   },
   "material": {
     "add": "Lägg till material",

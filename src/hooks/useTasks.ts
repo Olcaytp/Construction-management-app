@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export interface Task {
   id: string;
@@ -18,6 +19,7 @@ export interface Task {
 
 export const useTasks = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -71,12 +73,12 @@ export const useTasks = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Görev eklendi" });
+      toast({ title: t("task.added") });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Hata",
+        title: t("common.error"),
         description: error.message,
       });
     },
@@ -104,12 +106,12 @@ export const useTasks = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Görev güncellendi" });
+      toast({ title: t("task.updated") });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Hata",
+        title: t("common.error"),
         description: error.message,
       });
     },
@@ -122,12 +124,12 @@ export const useTasks = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Görev silindi" });
+      toast({ title: t("task.deleted") });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Hata",
+        title: t("common.error"),
         description: error.message,
       });
     },

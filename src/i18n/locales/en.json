@@ -44,7 +44,6 @@
     "overviewDescription": "Project and worker performance analysis",
     "activeWorkers": "Active Workers",
     "totalHours": "Total Hours",
-    "completedTasks": "Completed Tasks",
     "activeProjects": "Active Projects",
     "realizedUnitPrice": "Realized Unit Price",
     "taskDistribution": "Task Distribution",
@@ -192,7 +191,10 @@
     "cancel": "Cancel",
     "save": "Save",
     "created": "Project created",
-    "createError": "Error creating project"
+    "createError": "Error creating project",
+    "added": "Project added",
+    "updated": "Project updated",
+    "deleted": "Project deleted"
   },
   "contract": {
     "title": "Work Agreement",
@@ -270,7 +272,10 @@
     "unit": "Unit",
     "selectUnit": "Select unit",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "added": "Task added",
+    "updated": "Task updated",
+    "deleted": "Task deleted"
   },
   "team": {
     "add": "Add Team Member",
@@ -292,7 +297,10 @@
     "totalPaidPlaceholder": "e.g., 15000",
     "balance": "Balance",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "added": "Team member added",
+    "updated": "Team member updated",
+    "deleted": "Team member deleted"
   },
   "customer": {
     "add": "Add Customer",
@@ -310,7 +318,10 @@
     "balance": "Balance",
     "projects": "Project(s)",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "added": "Customer added",
+    "updated": "Customer updated",
+    "deleted": "Customer deleted"
   },
   "material": {
     "add": "Add Material",

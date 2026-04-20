@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export interface TeamMember {
   id: string;
@@ -14,6 +15,7 @@ export interface TeamMember {
 
 export const useTeamMembers = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: teamMembers = [], isLoading } = useQuery({
@@ -57,10 +59,10 @@ export const useTeamMembers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team_members"] });
-      toast({ title: "Ekip üyesi eklendi" });
+      toast({ title: t("team.added") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -82,10 +84,10 @@ export const useTeamMembers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team_members"] });
-      toast({ title: "Ekip üyesi güncellendi" });
+      toast({ title: t("team.updated") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -96,10 +98,10 @@ export const useTeamMembers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team_members"] });
-      toast({ title: "Ekip üyesi silindi" });
+      toast({ title: t("team.deleted") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 

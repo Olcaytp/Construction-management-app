@@ -7,6 +7,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export interface Project {
   id: string;
@@ -27,6 +28,7 @@ export interface Project {
 
 export const useProjects = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
@@ -38,9 +40,6 @@ export const useProjects = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      // 🚨 Supabase'den gelen ham veriyi görmek için buraya ekleyin
-      // console.log("Supabase'den Gelen Ham Veri:", data);
-
       return (data || []).map((p) => ({
         id: p.id,
         title: p.title,
@@ -85,10 +84,10 @@ export const useProjects = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast({ title: "Proje eklendi" });
+      toast({ title: t("project.added") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -116,10 +115,10 @@ export const useProjects = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast({ title: "Proje güncellendi" });
+      toast({ title: t("project.updated") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -130,15 +129,12 @@ export const useProjects = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast({ title: "Proje silindi" });
+      toast({ title: t("project.deleted") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
-  // 💡 Dönüştürülmüş (camelCase'e çevrilmiş) proje listesini görmek için buraya ekleyin
-  // console.log("Dönüştürülmüş Projeler (formattedProjects):", projects);
-
   return {
     projects,
     isLoading,

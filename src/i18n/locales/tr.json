@@ -34,7 +34,7 @@
   "stats": {
     "totalProjects": "Toplam Projeler",
     "activeTasks": "Aktif Görevler",
-    "completedTasks": "Tamamlanan Görevler",
+    "completedTasks": "Tamamlanan Görev",
     "teamMembers": "Ekip Üyeleri",
     "totalBudget": "Toplam Bütçe",
     "totalRevenue": "Toplam Gelir",
@@ -44,7 +44,6 @@
     "overviewDescription": "Proje ve işçi performans analizi",
     "activeWorkers": "Aktif Çalışan",
     "totalHours": "Toplam Saat",
-    "completedTasks": "Tamamlanan Görev",
     "activeProjects": "Aktif Projeler",
     "realizedUnitPrice": "Gerçekleşen Birim Fiyatı",
     "taskDistribution": "Görev Dağılımı",
@@ -192,7 +191,10 @@
     "cancel": "İptal",
     "save": "Kaydet",
     "created": "Proje oluşturuldu",
-    "createError": "Proje oluşturulurken hata oluştu"
+    "createError": "Proje oluşturulurken hata oluştu",
+    "added": "Proje eklendi",
+    "updated": "Proje güncellendi",
+    "deleted": "Proje silindi"
   },
   "contract": {
     "title": "İş Sözleşmesi",
@@ -270,7 +272,10 @@
     "unit": "Birim",
     "selectUnit": "Birim seçin",
     "cancel": "İptal",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "added": "Görev eklendi",
+    "updated": "Görev güncellendi",
+    "deleted": "Görev silindi"
   },
   "team": {
     "add": "Ekip Üyesi Ekle",
@@ -292,7 +297,10 @@
     "totalPaidPlaceholder": "Örn: 15000",
     "balance": "Kalan",
     "cancel": "İptal",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "added": "Ekip üyesi eklendi",
+    "updated": "Ekip üyesi güncellendi",
+    "deleted": "Ekip üyesi silindi"
   },
   "customer": {
     "add": "Müşteri Ekle",
@@ -310,7 +318,10 @@
     "balance": "Bakiye",
     "projects": "Proje",
     "cancel": "İptal",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "added": "Müşteri eklendi",
+    "updated": "Müşteri güncellendi",
+    "deleted": "Müşteri silindi"
   },
   "material": {
     "add": "Malzeme Ekle",

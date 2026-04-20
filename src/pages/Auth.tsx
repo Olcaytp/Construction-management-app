@@ -28,7 +28,15 @@ const Auth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          navigate("/");
+          // Usta mı admin mi? worker_portal_links'e bak
+          const { data: workerLink } = await supabase
+            .from("worker_portal_links")
+            .select("id")
+            .eq("auth_user_id", session.user.id)
+            .eq("is_active", true)
+            .maybeSingle();
+
+          navigate(workerLink ? "/portal" : "/");
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -39,9 +47,17 @@ const Auth = () => {
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        navigate("/");
+        // Magic link ile giriş yapıldığında doğru sayfaya yönlendir
+        const { data: workerLink } = await supabase
+          .from("worker_portal_links")
+          .select("id")
+          .eq("auth_user_id", session.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        navigate(workerLink ? "/portal" : "/");
       }
     });
 

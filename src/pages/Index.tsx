@@ -34,6 +34,7 @@ import { CustomerForm } from "@/components/CustomerForm";
 import { UpgradeAlert } from "@/components/UpgradeAlert";
 import { ReportsSection } from "@/components/ReportsSection";
 import { AdminPanel } from "@/components/AdminPanel";
+import { WorkerPortalPanel } from "@/components/portal/WorkerPortalPanel";
 import { InvoicesSection } from "@/components/InvoicesSection";
 import { TimesheetSection } from "@/components/TimesheetSection";
 import { LayoutDashboard, FolderKanban, ListTodo, Users, Plus, Building2, Pencil, Trash2, DollarSign, Package, UserCircle, Crown, BarChart3, Shield, FileText, Receipt, Phone, Briefcase, Banknote, Wallet, TrendingUp, TrendingDown } from "lucide-react";
@@ -74,10 +75,7 @@ const Index = () => {
   const [projectSort, setProjectSort] = useState("startDate");
   const [taskSort, setTaskSort] = useState("dueDate");
 
-  // Dil bilgisini buradan çekiyoruz:
-  const currentLanguage = i18n.language; // 'tr', 'sv', 'en' gibi bir değer dönecektir.
-  const isSwedish = currentLanguage.startsWith('sv'); // 'sv' ile başlayan dilleri (sv-SE gibi) İsveççe kabul ederiz.
-  const isEnglish = currentLanguage.startsWith('en'); // 'en' ile başlayan dilleri (en-US gibi) İngilizce kabul ederiz.
+
 
   const { user, signOut } = useAuth();
   const { isPremium, subscription } = useSubscription();
@@ -191,31 +189,29 @@ const Index = () => {
     setDeleteConfirm({ type: "task", id });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteConfirm) return;
-    
+
     switch (deleteConfirm.type) {
       case "teamMember":
         deleteTeamMember(deleteConfirm.id);
-        toast({ title: "Ekip üyesi silindi" });
         break;
       case "customer":
         deleteCustomer(deleteConfirm.id);
-        toast({ title: "Müşteri silindi" });
         break;
-      case "project":
-        // Projeye ait görevleri sil
+      case "project": {
+        // Önce tüm ilişkili görevlerin silinmesini bekle, sonra projeyi sil
         const relatedTasks = tasks.filter(t => t.projectId === deleteConfirm.id);
-        relatedTasks.forEach(task => {
-          deleteTask(task.id);
-        });
-        // Sonra projeyi sil
+        await Promise.all(
+          relatedTasks.map(task => new Promise<void>((resolve) => {
+            deleteTask(task.id, { onSettled: () => resolve() });
+          }))
+        );
         deleteProject(deleteConfirm.id);
-        toast({ title: "Proje silindi" });
         break;
+      }
       case "task":
         deleteTask(deleteConfirm.id);
-        toast({ title: "Görev silindi" });
         break;
     }
     setDeleteConfirm(null);
@@ -280,15 +276,21 @@ const Index = () => {
     return projects.some(p => p.id === projectId);
   };
 
-  // Clean up tasks with corrupted projectIds (e.g., team member IDs stored as projectIds)
+  // Clean up tasks with corrupted projectIds — runs once after data loads, not on every render
+  useEffect(() => {
+    if (projects.length === 0 || tasks.length === 0) return;
+    tasks.forEach(task => {
+      if (task.projectId && !projects.some(p => p.id === task.projectId)) {
+        updateTask({ id: task.id, projectId: "" });
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects.length, tasks.length]);
+
+  // Cleaned view of tasks — no DB calls, safe to use in render
   const getCleanedTasks = (tasksToClean: typeof tasks) => {
     return tasksToClean.map(task => {
-      // If task has a projectId that doesn't match any project, clear it
       if (task.projectId && !projects.some(p => p.id === task.projectId)) {
-        // Automatically clear the corrupted projectId
-        if (task.projectId) {
-          updateTask({ id: task.id, projectId: "" });
-        }
         return { ...task, projectId: "" };
       }
       return task;
@@ -366,6 +368,8 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const tabTriggerClass = "gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2";
+
   return (
     <div className="min-h-screen bg-background">
       <OnboardingModal open={showOnboarding} onComplete={() => setShowOnboarding(false)} />
@@ -426,52 +430,52 @@ const Index = () => {
               {/* Desktop Tabs */}
               <div className="hidden md:block">
                 <TabsList className="bg-transparent inline-flex flex-wrap gap-3 justify-center p-0">
-                  <TabsTrigger value="dashboard" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="dashboard" className={tabTriggerClass}>
                     <LayoutDashboard className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.dashboard')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="projects" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="projects" className={tabTriggerClass}>
                     <FolderKanban className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.projects')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="tasks" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="tasks" className={tabTriggerClass}>
                     <ListTodo className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.tasks')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="teams" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="teams" className={tabTriggerClass}>
                     <Users className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.team')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="finance" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="finance" className={tabTriggerClass}>
                     <DollarSign className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.economy')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="materials" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="materials" className={tabTriggerClass}>
                     <Package className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.materials')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="customers" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="customers" className={tabTriggerClass}>
                     <UserCircle className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.customers')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="reports" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="reports" className={tabTriggerClass}>
                     <BarChart3 className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.reports')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="invoices" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="invoices" className={tabTriggerClass}>
                     <Receipt className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.invoices')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="contracts" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="contracts" className={tabTriggerClass}>
                     <FileText className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.contracts')}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="subscription" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                  <TabsTrigger value="subscription" className={tabTriggerClass}>
                     <Crown className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('app.subscription')}</span>
                   </TabsTrigger>
                   {isAdmin && (
-                    <TabsTrigger value="admin" className="gap-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:font-semibold rounded-none px-2 sm:px-3 py-2 pb-2">
+                    <TabsTrigger value="admin" className={tabTriggerClass}>
                       <Shield className="h-4 w-4" />
                       <span className="hidden sm:inline">{t('app.admin')}</span>
                     </TabsTrigger>
@@ -1417,6 +1421,7 @@ const Index = () => {
           {isAdmin && (
             <TabsContent value="admin" className="space-y-4 sm:space-y-6">
               <AdminPanel />
+              <WorkerPortalPanel />
             </TabsContent>
           )}
         </Tabs>

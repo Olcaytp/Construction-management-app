@@ -17,6 +17,7 @@ import { Footer } from "@/components/Footer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Statistics from "./pages/Statistics";
+import WorkerPortal from "./pages/WorkerPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -41,6 +42,7 @@ const App = () => (
                 <div className="flex-1">
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/portal" element={<WorkerPortal />} />
                     <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                     <Route path="/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

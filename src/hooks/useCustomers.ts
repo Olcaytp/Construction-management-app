@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import { useSubscription, PLAN_LIMITS } from "@/hooks/useSubscription";
 
 export interface Customer {
@@ -15,6 +16,7 @@ export interface Customer {
 
 export const useCustomers = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isPremium } = useSubscription();
 
@@ -68,10 +70,10 @@ export const useCustomers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast({ title: "Müşteri eklendi" });
+      toast({ title: t("customer.added") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -93,10 +95,10 @@ export const useCustomers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast({ title: "Müşteri güncellendi" });
+      toast({ title: t("customer.updated") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
@@ -107,10 +109,10 @@ export const useCustomers = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast({ title: "Müşteri silindi" });
+      toast({ title: t("customer.deleted") });
     },
     onError: (error) => {
-      toast({ variant: "destructive", title: "Hata", description: error.message });
+      toast({ variant: "destructive", title: t("common.error"), description: error.message });
     },
   });
 
