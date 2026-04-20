@@ -148,10 +148,17 @@ export const useWorkerPortalAdmin = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("worker_task_comments")
-        .select("*")
+        .select("*, team_members(name), tasks(title, status, priority, due_date)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []).map(mapComment);
+      return (data || []).map((c: any) => ({
+        ...mapComment(c),
+        memberName: c.team_members?.name || "Usta",
+        taskTitle: c.tasks?.title || "",
+        taskStatus: c.tasks?.status || "",
+        taskPriority: c.tasks?.priority || "",
+        taskDueDate: c.tasks?.due_date || "",
+      }));
     },
   });
 
@@ -326,8 +333,12 @@ export const useWorkerPortal = () => {
       .from("worker-photos")
       .upload(path, file);
     if (error) throw error;
-    const { data } = supabase.storage.from("worker-photos").getPublicUrl(path);
-    return data.publicUrl;
+    // Signed URL — 1 yıl geçerli
+    const { data } = await supabase.storage
+      .from("worker-photos")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (!data?.signedUrl) throw new Error("Signed URL alınamadı");
+    return data.signedUrl;
   };
 
   return {

@@ -313,6 +313,8 @@ export const ProjectForm = ({
   };
 
   const selectedTeam = form.watch("assignedTeam") || [];
+  // Sadece hâlâ mevcut olan üyeleri say (silinmiş ID'leri filtrele)
+  const validSelectedTeam = selectedTeam.filter((id: string) => teamMembers.some(m => m.id === id));
 
   const toggleTeamMember = (memberId: string) => {
     const current = form.getValues("assignedTeam") || [];
@@ -480,11 +482,11 @@ export const ProjectForm = ({
                         type="button"
                       >
                         <span className="truncate">
-                          {selectedTeam.length === 0 
+                          {validSelectedTeam.length === 0 
                             ? t("project.selectMasters")
-                            : selectedTeam.length === 1
-                            ? teamMembers.find(m => m.id === selectedTeam[0])?.name || t("project.selectMasters")
-                            : `${selectedTeam.length} ${t("project.masterSelected") || "usta seçildi"}`}
+                            : validSelectedTeam.length === 1
+                            ? teamMembers.find(m => m.id === validSelectedTeam[0])?.name || t("project.selectMasters")
+                            : `${validSelectedTeam.length} ${t("project.masterSelected") || "usta seçildi"}`}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>

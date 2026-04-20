@@ -357,30 +357,63 @@ export const WorkerPortalPanel = () => {
             Görev Yorumları
           </h3>
           <div className="space-y-3">
-            {allComments.map((comment) => (
-              <div key={comment.id} className="border border-border rounded-lg p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-foreground">
-                    {memberName(comment.teamMemberId)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleString("tr-TR")}
-                  </span>
-                </div>
-                <p className="text-sm text-foreground">{comment.comment}</p>
-                {comment.photos.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
-                    {comment.photos.map((url, i) => (
-                      <a key={i} href={url} target="_blank" rel="noreferrer">
-                        <img
-                          src={url}
-                          alt=""
-                          className="w-16 h-16 object-cover rounded-md border border-border hover:opacity-80 transition-opacity"
-                        />
-                      </a>
-                    ))}
+            {(allComments as any[]).map((comment) => (
+              <div key={comment.id} className="border border-border rounded-xl overflow-hidden">
+                {/* Görev detay bandı */}
+                {comment.taskTitle && (
+                  <div className="bg-muted/50 px-3 py-2 border-b border-border flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-foreground truncate">
+                      📋 {comment.taskTitle}
+                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {comment.taskStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium
+                          ${comment.taskStatus === "completed" ? "bg-green-100 text-green-700" :
+                            comment.taskStatus === "in-progress" ? "bg-blue-100 text-blue-700" :
+                            "bg-gray-100 text-gray-600"}`}>
+                          {comment.taskStatus === "completed" ? "Tamamlandı" :
+                           comment.taskStatus === "in-progress" ? "Devam Ediyor" : "Bekliyor"}
+                        </span>
+                      )}
+                      {comment.taskDueDate && (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(comment.taskDueDate).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
+                {/* Yorum içeriği */}
+                <div className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-foreground">
+                      👷 {comment.memberName || memberName(comment.teamMemberId)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(comment.createdAt).toLocaleDateString("tr-TR", {
+                        day: "numeric", month: "long"
+                      })} · {new Date(comment.createdAt).toLocaleTimeString("tr-TR", {
+                        hour: "2-digit", minute: "2-digit"
+                      })}
+                    </span>
+                  </div>
+                  {comment.comment && (
+                    <p className="text-sm text-foreground leading-relaxed">{comment.comment}</p>
+                  )}
+                  {comment.photos?.length > 0 && (
+                    <div className="flex gap-2 flex-wrap pt-1">
+                      {comment.photos.map((url: string, i: number) => (
+                        <a key={i} href={url} target="_blank" rel="noreferrer">
+                          <img
+                            src={url}
+                            alt=""
+                            className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
