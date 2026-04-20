@@ -114,4 +114,12 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground m-0 p-0 w-full overflow-x-hidden;
   }
+
+  /* 24 saat formatı — AM/PM gizle */
+  input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none;
+  }
+  input[type="time"] {
+    -webkit-appearance: none;
+  }
 }

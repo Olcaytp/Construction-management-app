@@ -69,16 +69,16 @@ function netHours(row: RowForm): number {
   return Math.max(0, work - b1 - b2);
 }
 
-const TimeInput = ({ value, onChange, disabled, placeholder }: {
-  value: string; onChange: (v: string) => void; disabled?: boolean; placeholder?: string;
+const TimeInput = ({ value, onChange, disabled }: {
+  value: string; onChange: (v: string) => void; disabled?: boolean;
 }) => (
   <input
     type="time"
     value={value}
     disabled={disabled}
     onChange={(e) => onChange(e.target.value)}
-    placeholder={placeholder}
     className="w-full bg-white border border-gray-300 text-gray-800 text-xs rounded px-1.5 py-1.5 disabled:bg-gray-100 disabled:text-gray-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+    style={{ WebkitAppearance: "none" }}
   />
 );
 
