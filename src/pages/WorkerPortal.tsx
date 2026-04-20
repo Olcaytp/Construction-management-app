@@ -89,16 +89,16 @@ const WorkerPortal = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-slate-800 bg-slate-900 sticky top-0 z-40">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-40">
+        <div className="w-full px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-amber-500 p-1.5 rounded-lg">
-              <Building2 className="w-5 h-5 text-slate-900" />
+              <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-xs text-slate-400 leading-none">Usta Portalı</p>
-              <p className="text-sm font-semibold text-white leading-tight">
+              <p className="text-xs text-gray-400 leading-none">Usta Portalı</p>
+              <p className="text-sm font-semibold text-gray-800 leading-tight">
                 {user?.email}
               </p>
             </div>
@@ -107,26 +107,26 @@ const WorkerPortal = () => {
             variant="ghost"
             size="sm"
             onClick={signOut}
-            className="text-slate-400 hover:text-white hover:bg-slate-800"
+            className="text-gray-400 hover:text-gray-700"
           >
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="w-full px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-slate-900 border border-slate-800 p-1 rounded-xl mb-6">
+          <TabsList className="w-full bg-white border border-gray-200 p-1 rounded-xl mb-6 shadow-sm">
             <TabsTrigger
               value="logs"
-              className="flex-1 gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-slate-900 text-slate-400 rounded-lg"
+              className="flex-1 gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-white text-gray-500 rounded-lg"
             >
               <CalendarDays className="w-4 h-4" />
               Çalışma Takibi
             </TabsTrigger>
             <TabsTrigger
               value="tasks"
-              className="flex-1 gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-slate-900 text-slate-400 rounded-lg"
+              className="flex-1 gap-2 data-[state=active]:bg-amber-500 data-[state=active]:text-white text-gray-500 rounded-lg"
             >
               <ListTodo className="w-4 h-4" />
               Görevlerim
