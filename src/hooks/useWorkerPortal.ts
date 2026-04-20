@@ -214,7 +214,6 @@ export const useWorkerPortal = () => {
       const { error } = await supabase.from("worker_logs").upsert(
         {
           team_member_id: workerLink.teamMemberId,
-          owner_user_id: workerLink.ownerUserId,
           work_date: log.workDate,
           week_number: log.weekNumber,
           year: log.year,
