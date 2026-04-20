@@ -39,6 +39,7 @@ export interface WorkerTaskComment {
   comment: string;
   photos: string[];
   createdAt: string;
+  memberName?: string;
 }
 
 // ─── Admin: portal link yönetimi ───────────────────────────────────────────
@@ -277,11 +278,13 @@ export const useWorkerPortal = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("worker_task_comments")
-        .select("*")
-        .eq("team_member_id", workerLink!.teamMemberId)
-        .order("created_at", { ascending: false });
+        .select("*, team_members(name)")
+        .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []).map(mapComment);
+      return (data || []).map((c: any) => ({
+        ...mapComment(c),
+        memberName: c.team_members?.name || "Usta",
+      }));
     },
   });
 
