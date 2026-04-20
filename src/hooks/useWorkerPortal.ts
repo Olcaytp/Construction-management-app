@@ -20,6 +20,10 @@ export interface WorkerLog {
   year: number;
   startTime: string | null;
   endTime: string | null;
+  break1Start: string | null;
+  break1End: string | null;
+  break2Start: string | null;
+  break2End: string | null;
   hoursWorked: number;
   zone: string | null;
   workType: "demir" | "kalip" | "beton" | "diger";
@@ -216,6 +220,10 @@ export const useWorkerPortal = () => {
           year: log.year,
           start_time: log.startTime,
           end_time: log.endTime,
+          break1_start: log.break1Start,
+          break1_end: log.break1End,
+          break2_start: log.break2Start,
+          break2_end: log.break2End,
           hours_worked: log.hoursWorked,
           zone: log.zone,
           work_type: log.workType,
@@ -345,6 +353,10 @@ function mapLog(l: any): WorkerLog {
     year: l.year,
     startTime: l.start_time,
     endTime: l.end_time,
+    break1Start: l.break1_start || null,
+    break1End: l.break1_end || null,
+    break2Start: l.break2_start || null,
+    break2End: l.break2_end || null,
     hoursWorked: Number(l.hours_worked) || 0,
     zone: l.zone,
     workType: l.work_type,
