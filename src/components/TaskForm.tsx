@@ -41,7 +41,7 @@ const getFormSchema = (t: any) => {
   return z.object({
     title: z.string().min(2, t("validation.taskTitleRequired") || "Görev adı en az 2 karakter olmalı"),
     project: z.string().min(1, t("validation.required") || "Lütfen proje seçin"),
-    assignee: z.string().min(1, t("validation.required") || "Lütfen sorumlu seçin"),
+    assignee: z.array(z.string()).min(1, t("validation.required") || "Lütfen sorumlu seçin"),
     dueDate: z.string()
       .min(1, t("validation.required") || "Lütfen tarih seçin"),
     status: z.enum(["pending", "in-progress", "completed"]),
@@ -96,7 +96,7 @@ export const TaskForm = ({
     defaultValues: defaultValues || {
       title: "",
       project: "",
-      assignee: "",
+      assignee: [],
       dueDate: "",
       status: "pending",
       priority: "medium",
@@ -115,7 +115,7 @@ export const TaskForm = ({
       form.reset({
         title: "",
         project: "",
-        assignee: "",
+        assignee: [],
         dueDate: "",
         status: "pending",
         priority: "medium",
@@ -207,26 +207,50 @@ export const TaskForm = ({
             <FormField
               control={form.control}
               name="assignee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('task.master')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('task.selectMaster')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {teamMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const selected: string[] = field.value || [];
+                const toggle = (id: string) => {
+                  const next = selected.includes(id)
+                    ? selected.filter((x) => x !== id)
+                    : [...selected, id];
+                  field.onChange(next);
+                };
+                return (
+                  <FormItem>
+                    <FormLabel>{t('task.master')}</FormLabel>
+                    <div className="border border-input rounded-md p-2 max-h-40 overflow-y-auto space-y-1">
+                      {teamMembers.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-2">Ekip üyesi yok</p>
+                      ) : (
+                        teamMembers.map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                            onClick={() => toggle(member.id)}
+                          >
+                            <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
+                              ${selected.includes(member.id) ? "bg-primary border-primary" : "border-input"}`}>
+                              {selected.includes(member.id) && (
+                                <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-sm">{member.name}</span>
+                            {member.specialty && (
+                              <span className="text-xs text-muted-foreground ml-auto">{member.specialty}</span>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {selected.length > 0 && (
+                      <p className="text-xs text-muted-foreground">{selected.length} usta seçildi</p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}

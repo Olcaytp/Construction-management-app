@@ -298,19 +298,17 @@ const Index = () => {
   };
 
   const handleAddTask = (data: any) => {
-    // Validate that projectId is a valid project
     if (data.project && !validateProjectId(data.project)) {
       handleTaskValidationError("Seçilen proje geçersiz. Lütfen geçerli bir proje seçin.");
       return;
     }
-
     const taskData = {
       title: data.title,
       description: "",
       status: data.status,
       priority: data.priority,
       projectId: data.project,
-      assignedTo: data.assignee,
+      assignedTo: Array.isArray(data.assignee) ? data.assignee.join(",") : data.assignee,
       dueDate: data.dueDate,
       estimatedCost: data.estimatedCost,
       quantity: data.quantity,
@@ -330,13 +328,10 @@ const Index = () => {
 
   const handleEditTask = (data: any) => {
     if (!editingTask) return;
-
-    // Validate that projectId is a valid project
     if (data.project && !validateProjectId(data.project)) {
       handleTaskValidationError("Seçilen proje geçersiz. Lütfen geçerli bir proje seçin.");
       return;
     }
-
     const taskData = {
       id: editingTask.id,
       title: data.title,
@@ -344,7 +339,7 @@ const Index = () => {
       status: data.status,
       priority: data.priority,
       projectId: data.project,
-      assignedTo: data.assignee,
+      assignedTo: Array.isArray(data.assignee) ? data.assignee.join(",") : data.assignee,
       dueDate: data.dueDate,
       estimatedCost: data.estimatedCost,
       quantity: data.quantity,
@@ -564,7 +559,11 @@ const Index = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t('app.tasks')}</h2>
               <div className="space-y-2 sm:space-y-3">
                 {tasks.slice(0, 3).map(task => {
-                  const assigneeName = teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo || t('common.noData');
+                  const assigneeName = task.assignedTo
+                    ? task.assignedTo.split(",").filter(Boolean)
+                        .map(id => teamMembers.find(m => m.id === id)?.name || id)
+                        .join(", ")
+                    : t('common.noData');
                   return (
                     <div 
                       key={task.id} 
@@ -829,7 +828,11 @@ const Index = () => {
                   return 0;
                 });
                 return sortedTasks.map(task => {
-                  const assigneeName = teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo || t('common.noData');
+                  const assigneeName = task.assignedTo
+                    ? task.assignedTo.split(",").filter(Boolean)
+                        .map(id => teamMembers.find(m => m.id === id)?.name || id)
+                        .join(", ")
+                    : t('common.noData');
                   const project = projects.find(p => p.id === task.projectId);
                   return (
                     <div
@@ -1516,7 +1519,7 @@ const Index = () => {
         defaultValues={editingTask ? {
           title: editingTask.title,
           project: editingTask.projectId,
-          assignee: editingTask.assignedTo,
+          assignee: editingTask.assignedTo ? editingTask.assignedTo.split(",").filter(Boolean) : [],
           dueDate: editingTask.dueDate,
           status: editingTask.status,
           priority: editingTask.priority,

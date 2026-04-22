@@ -257,10 +257,11 @@ export const useWorkerPortal = () => {
     queryKey: ["my_worker_tasks", workerLink?.teamMemberId],
     enabled: !!workerLink,
     queryFn: async () => {
+      // assigned_to virgüllü string içerebilir: "id1,id2,id3"
       const { data, error } = await supabase
         .from("tasks")
         .select("*, projects(title)")
-        .eq("assigned_to", workerLink!.teamMemberId)
+        .ilike("assigned_to", `%${workerLink!.teamMemberId}%`)
         .order("due_date", { ascending: true });
       if (error) throw error;
       return (data || []).map((t: any) => ({
